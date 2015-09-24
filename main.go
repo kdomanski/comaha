@@ -7,14 +7,26 @@ import (
 	"github.com/coreos/go-omaha/omaha"
 	"io/ioutil"
 	"net/http"
+	"os"
+//	"time"
+	"strconv"
 )
 
 const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 
+var backend *singleFileBackend
+
 func main() {
 	log.SetLevel(log.DebugLevel)
 
-	http.HandleFunc("/coreos:latest/update.gz", coreosHandler)
+	var err error
+	backend, err = NewSingleFileBackend("payload-list.json")
+	if err != nil {
+		log.Errorf("Failed to load simple backend from 'payload-list.json': %v", err.Error())
+		os.Exit(1)
+	}
+
+	http.HandleFunc("/file", coreosHandler)
 	http.HandleFunc("/update", rootHandler)
 	http.HandleFunc("/", homeHandler)
 	http.ListenAndServe(":8080", nil)
@@ -30,7 +42,9 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func coreosHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	http.ServeFile(w, r, "update.gz")
+	fileid := r.URL.Query().Get("id")
+	http.ServeFile(w, r, fileid)
+	//http.ServeContent(w, r, "update.gz", time.Time{}, payload)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,17 +81,22 @@ func applicationUpdate(w http.ResponseWriter, r *http.Request, app *omaha.App) {
 		return
 	}
 
+	size := backend.GetPayload().Size
+	sha1 := backend.GetPayload().SHA1
+	sha256 := backend.GetPayload().SHA256
+	id := backend.GetPayload().Url
+
 	resp := omaha.NewResponse("coreos-update.protonet.info")
 	newApp := resp.AddApp(coreOSAppID)
 	newApp.Status = "ok"
 	updateCheck := newApp.AddUpdateCheck()
 	updateCheck.Status = "ok"
-	updateCheck.AddUrl("http://172.17.8.12:8080/coreos:latest/")
+	updateCheck.AddUrl("http://10.0.2.2:8080/file?id=")
 	//updateCheck.AddUrl("http://coreos-update.protorz.net:8080/coreos:latest/")
 	manifest := updateCheck.AddManifest("1.0.2")
-	manifest.AddPackage("328d2d14facf805b3508afc4d315f784c41e62c4", "update.gz", "123456", true)
+	manifest.AddPackage(sha1, id, strconv.FormatInt(size, 10), true)
 	action := manifest.AddAction("postinstall")
-	action.Sha256 = "b602d630f0a081840d0ca8fc4d35810e42806642b3127bb702d65c3df227d0f5"
+	action.Sha256 = sha256
 	action.DisablePayloadBackoff = true
 	//action.MetadataSignatureRsa = "ixi6Oebo"
 	//action.MetadataSize = "190"
