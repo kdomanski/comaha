@@ -39,8 +39,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
   err = xml.Unmarshal(body, &reqStructure)
 
   if n := len(reqStructure.Apps); n != 1 {
-    log.Errorf("Client '%v' tried to %v services", r.RemoteAddr, n)
+    log.Errorf("Client '%v' tried to update %v services", r.RemoteAddr, n)
     http.Error(w, "I can handle only 1 app update.", 400)
+    return
   }
 
   applicationUpdate(w, r, reqStructure.Apps[0])
@@ -56,6 +57,7 @@ func applicationUpdate(w http.ResponseWriter, r *http.Request, app *omaha.App) {
     s := fmt.Sprintf("Unknown app ID '%v'.", app.Id)
     log.Errorf("Client '%v' tried to update service '%v'.", r.RemoteAddr, app.Id)
     http.Error(w, s, 400)
+    return
   }
 
   resp := omaha.NewResponse("coreos-update.protonet.info")
@@ -64,6 +66,12 @@ func applicationUpdate(w http.ResponseWriter, r *http.Request, app *omaha.App) {
   updateCheck.Status = "ok"
   updateCheck.AddUrl("http://coreos-update.protonet.info/coreos:latest")
   manifest := updateCheck.AddManifest("1.0.2")
+  manifest.AddPackage("328d2d14facf805b3508afc4d315f784c41e62c4", "update.gz", "123456", false)
+  action := manifest.AddAction("foobar")
+  action.Sha256 = "b602d630f0a081840d0ca8fc4d35810e42806642b3127bb702d65c3df227d0f5"
+  action.DisablePayloadBackoff = true
+  action.MetadataSignatureRsa = "ixi6Oebo"
+  action.MetadataSize = "190"
 
   data, err := xml.Marshal(resp)
   if err != nil {
