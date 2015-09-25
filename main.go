@@ -46,21 +46,6 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	http.Error(w, "", 404)
-
-	log.Infof("Someone tried to access '%s'", r.URL.String())
-}
-
-func coreosHandler(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	fileid := r.URL.Query().Get("id")
-	http.ServeFile(w, r, fileid)
-	//http.ServeContent(w, r, "update.gz", time.Time{}, payload)
-}
-
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
