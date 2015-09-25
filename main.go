@@ -1,25 +1,36 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/coreos/go-omaha/omaha"
+	sqlite3 "github.com/mattn/go-sqlite3"
 	"io/ioutil"
 	"net/http"
 	"os"
-//	"time"
 	"strconv"
 )
 
 const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 
 var backend *singleFileBackend
+var db *userDB
 
 func main() {
 	log.SetLevel(log.DebugLevel)
-
+	log.Info("COmaha update server starting")
 	var err error
+
+	sql.Register("sqlite3", &sqlite3.SQLiteDriver{})
+
+	db, err = newUserDB("users.sqlite")
+	if err != nil {
+		log.Errorf("Could not open database: %v", err.Error())
+		os.Exit(1)
+	}
+
 	backend, err = NewSingleFileBackend("payload-list.json")
 	if err != nil {
 		log.Errorf("Failed to load simple backend from 'payload-list.json': %v", err.Error())
@@ -28,6 +39,9 @@ func main() {
 
 	http.HandleFunc("/file", coreosHandler)
 	http.HandleFunc("/update", rootHandler)
+	//http.HandleFunc("/admin/add_group", addGroupHandler)
+	http.HandleFunc("/admin/add_payload", addPayloadHandler)
+	//http.HandleFunc("/admin/add_user", addUserHandler)
 	http.HandleFunc("/", homeHandler)
 	http.ListenAndServe(":8080", nil)
 }
@@ -81,10 +95,12 @@ func applicationUpdate(w http.ResponseWriter, r *http.Request, app *omaha.App) {
 		return
 	}
 
-	size := backend.GetPayload().Size
-	sha1 := backend.GetPayload().SHA1
-	sha256 := backend.GetPayload().SHA256
-	id := backend.GetPayload().Url
+	payload := backend.GetPayload("user", "channel", "version")
+
+	size := payload.Size
+	sha1 := payload.SHA1
+	sha256 := payload.SHA256
+	id := payload.Url
 
 	resp := omaha.NewResponse("coreos-update.protonet.info")
 	newApp := resp.AddApp(coreOSAppID)
