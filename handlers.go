@@ -2,7 +2,9 @@ package main
 
 import (
 	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"io"
 	"net/http"
@@ -32,5 +34,22 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 	}
 
-	calculatedSha1 := base64.StdEncoding.EncodeToString(sha1.Sum(data))
+	rawSha1 := sha1.Sum(data)
+	calculatedSha1 := base64.StdEncoding.EncodeToString(rawSha1[:])
+	rawSha256 := sha256.Sum256(data)
+	calculatedSha256 := base64.StdEncoding.EncodeToString(rawSha256[:])
+
+	if receivedSha1 != calculatedSha1 {
+		s := fmt.Sprintf("SHA1 validation failed, '%v'!='%v'", receivedSha1, calculatedSha1)
+		http.Error(w, s, 400)
+	}
+
+	if receivedSha256 != calculatedSha256 {
+		s := fmt.Sprintf("SHA256 validation failed, '%v'!='%v'", receivedSha256, calculatedSha256)
+		http.Error(w, s, 400)
+	}
+
+	// TODO actually add image
+
+	w.Write(nil)
 }
