@@ -66,7 +66,7 @@ func (u *userDB) GetNewerPayload(currentVersion payloadVersion) (p payload, err 
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	q, err := u.db.Prepare("SELECT id,size,sha1,sha256 FROM payloads WHERE (ver_build > ?) OR (ver_build = ? AND ver_branch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch = ? AND ver_timestamp > ?);")
+	q, err := u.db.Prepare("SELECT id,size,sha1,sha256 FROM payloads WHERE (ver_build > ?) OR (ver_build = ? AND ver_branch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch = ? AND ver_timestamp > ?) ORDER BY ver_build, ver_branch, ver_patch, ver_timestamp LIMIT 1;")
 	if err != nil {
 		return
 	}
