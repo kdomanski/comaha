@@ -50,12 +50,11 @@ func handleApiUpdateCheck(logContext *logrus.Entry, appVersion payloadVersion, u
 	payload, err := db.GetNewerPayload(appVersion)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// TODO already at the newest version response
-			// TODO respond properly
 			logContext.Infof("Client already up-to-date")
+			ucRequest.Status = "noupdate"
 		} else {
-			// TODO respond properly
 			logContext.Errorf("Failed checking for newer payload: %v", err.Error())
+			ucRequest.Status = "error-internal"
 		}
 	} else {
 		logContext.Infof("Found update to version '%v' (id %v)", "1.2.3.4.5.6", payload.Url)
