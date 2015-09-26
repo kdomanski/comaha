@@ -28,6 +28,14 @@ func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) 
 		}
 	}
 
+	if appRequest.Ping != nil {
+		// TODO register info from the ping
+
+		// response is always "ok" according to the specs
+		responsePing := appResponse.AddPing()
+		responsePing.Status = "ok"
+	}
+
 	for _, event := range appRequest.Events {
 		logContext.Warnf("Event to handle: '%v', resultv '%v'", event.Type, event.Result)
 		// TODO handle event
