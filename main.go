@@ -1,35 +1,49 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/xml"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/coreos/go-omaha/omaha"
-	sqlite3 "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
+	"time"
 )
 
 const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 
 var backend *singleFileBackend
 var db *userDB
+var fileBE fileBackend
 
 func main() {
 	log.SetLevel(log.DebugLevel)
 	log.Info("COmaha update server starting")
+
+	// seed the RNG
+	rand.Seed(time.Now().UnixNano())
+
 	var err error
 
-	sql.Register("sqlite3", &sqlite3.SQLiteDriver{})
-
+	// open db
 	db, err = newUserDB("users.sqlite")
 	if err != nil {
 		log.Errorf("Could not open database: %v", err.Error())
 		os.Exit(1)
 	}
+	defer db.Close()
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Errorf("Could not cwd: %v", err.Error())
+	}
+	lfbe := newLocalFileBackend(path.Join(cwd, "storage"))
+	fileBE = &lfbe
 
 	backend, err = NewSingleFileBackend("payload-list.json")
 	if err != nil {
@@ -39,6 +53,7 @@ func main() {
 
 	http.HandleFunc("/file", coreosHandler)
 	http.HandleFunc("/update", rootHandler)
+	http.HandleFunc("/shutdown", shutdownHandler)
 	//http.HandleFunc("/admin/add_group", addGroupHandler)
 	http.HandleFunc("/admin/add_payload", addPayloadHandler)
 	//http.HandleFunc("/admin/add_user", addUserHandler)
