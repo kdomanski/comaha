@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	log "github.com/Sirupsen/logrus"
 	_ "github.com/mattn/go-sqlite3"
 	"math/rand"
@@ -17,13 +18,20 @@ var db *userDB
 var fileBE fileBackend
 
 func main() {
+	var err error
+	var myHostname string // local hostname advertised in links from simple file backend
+	flag.StringVar(&myHostname, "hostname", "", "hostname advertised when using local file backend")
+	flag.Parse()
+	if myHostname == "" {
+		log.Error("You must set the 'hostname' parameter when using local file backend.")
+		os.Exit(1)
+	}
+
 	log.SetLevel(log.DebugLevel)
 	log.Info("COmaha update server starting")
 
 	// seed the RNG
 	rand.Seed(time.Now().UnixNano())
-
-	var err error
 
 	// open db
 	db, err = newUserDB("users.sqlite")

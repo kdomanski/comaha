@@ -50,8 +50,8 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	size := r.ContentLength
-	version := r.URL.Query().Get("version")
-	if version == "" {
+	versionString := r.URL.Query().Get("version")
+	if versionString == "" {
 		http.Error(w, "Missing parameter 'version'", 400)
 		return
 	}
@@ -62,12 +62,17 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	versionData, err := parseVersionString(versionString)
+	if err != nil {
+		s := fmt.Sprintf("Could not parse 'version': %v", err.Error())
+		http.Error(w, s, 400)
+		return
+	}
+
 	log.Debugf("addPayloadHandler: received size is %v", rcvsize)
 
 	rawSha1 := sha1.Sum(data)
 	calculatedSha1 := base64.StdEncoding.EncodeToString(rawSha1[:])
-	//calculatedSha1 := fmt.Sprintf("%x", rawSha1)
-	//calculatedSha1 := hex.EncodeToString(rawSha1[:])
 	rawSha256 := sha256.Sum256(data)
 	calculatedSha256 := base64.StdEncoding.EncodeToString(rawSha256[:])
 
@@ -87,7 +92,7 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("addPayloadHandler: storing data: %v", err.Error())
 	}
-	err = db.AddPayload(id, calculatedSha1, calculatedSha256, size, version)
+	err = db.AddPayload(id, calculatedSha1, calculatedSha256, size, versionData)
 	if err != nil {
 		log.Errorf("addPayloadHandler: adding payload to db: %v", err.Error())
 	}

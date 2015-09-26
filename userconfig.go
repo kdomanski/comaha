@@ -18,7 +18,7 @@ func newUserDB(filename string) (*userDB, error) {
 		return nil, err
 	}
 
-	_, err = database.Exec("CREATE TABLE IF NOT EXISTS payloads(id TEXT, size INTEGER, sha1 TEXT, sha256 TEXT, version TEXT)")
+	_, err = database.Exec("CREATE TABLE IF NOT EXISTS payloads(id TEXT, size INTEGER, sha1 TEXT, sha256 TEXT, ver_build INTEGER, ver_branch INTEGER, ver_patch INTEGER, ver_timestamp INTEGER)")
 	if err != nil {
 		return nil, err
 	}
@@ -45,19 +45,19 @@ func (u *userDB) Close() error {
 	return u.db.Close()
 }
 
-func (u *userDB) AddPayload(id, sha1, sha256 string, size int64, version string) error {
+func (u *userDB) AddPayload(id, sha1, sha256 string, size int64, version payloadVersion) error {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
-	q, err := u.db.Prepare("INSERT INTO payloads (id,size,sha1,sha256,version) VALUES (?, ?, ?, ?, ?);")
+	q, err := u.db.Prepare("INSERT INTO payloads (id,size,sha1,sha256,ver_build,ver_branch,ver_patch,ver_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?);")
 	if err != nil {
 		return err
 	}
-	_, err = q.Exec(id, size, sha1, sha256, version)
+	_, err = q.Exec(id, size, sha1, sha256, version.build, version.branch, version.patch, version.timestamp.Unix())
 	if err != nil {
 		return err
 	}
 
-	log.Debugf("DB: added payload '%v', size=%v, version=%v, sha1=%v, sha256=%v,", id, size, version, sha1, sha256)
+	log.Debugf("DB: added payload '%v', size=%v, version=%v.%v.%v+%v, sha1=%v, sha256=%v,", id, size, version.build, version.branch, version.patch, version.timestamp.Unix(), sha1, sha256)
 
 	return nil
 }
