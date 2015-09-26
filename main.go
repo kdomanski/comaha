@@ -15,10 +15,10 @@ const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 
 var db *userDB
 var fileBE fileBackend
+var myHostname string // local hostname advertised in responses
 
 func main() {
 	var err error
-	var myHostname string // local hostname advertised in links from simple file backend
 	flag.StringVar(&myHostname, "hostname", "", "hostname advertised when using local file backend")
 	flag.Parse()
 	if myHostname == "" {

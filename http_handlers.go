@@ -133,7 +133,7 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 		"remoteAddr": r.RemoteAddr,
 	})
 
-	resp := omaha.NewResponse("coreos-update.protonet.info")
+	resp := omaha.NewResponse(myHostname)
 	for _, appReq := range reqStructure.Apps {
 		appResponse := resp.AddApp(appReq.Id)
 		handleApiApp(logContext, appReq, appResponse)

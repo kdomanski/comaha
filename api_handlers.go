@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/coreos/go-omaha/omaha"
 	"strconv"
@@ -60,7 +61,10 @@ func handleApiUpdateCheck(logContext *logrus.Entry, appVersion payloadVersion, u
 		logContext.Infof("Found update to version '%v' (id %v)", "1.2.3.4.5.6", payload.Url)
 
 		ucResp.Status = "ok"
-		ucResp.AddUrl("http://10.0.2.2:8080/file?id=")
+		// TODO implement port configuration
+		// TODO implement protocol configuration (maybe use info from request URL?)
+		url := fmt.Sprintf("http://%v:8080/file?id=", myHostname)
+		ucResp.AddUrl(url)
 
 		manifest := ucResp.AddManifest("1.0.2")
 		manifest.AddPackage(payload.SHA1, payload.Url, strconv.FormatInt(payload.Size, 10), true)
