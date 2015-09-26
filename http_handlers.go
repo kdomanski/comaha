@@ -129,7 +129,6 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 	log.Debugf("%#v", reqStructure)
 
 	logContext := log.WithFields(log.Fields{
-		"userId":     reqStructure.UserId,
 		"remoteAddr": r.RemoteAddr,
 	})
 

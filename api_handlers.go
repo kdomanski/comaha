@@ -10,6 +10,10 @@ import (
 
 // parse an 'app' tag of request and generate a corresponding 'app' tag of response
 func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) {
+	logContext = logContext.WithFields(logrus.Fields{
+		"machineId": appRequest.MachineID,
+	})
+
 	if appRequest.Id != coreOSAppID {
 		appResponse.Status = "error-unknownApplication"
 	} else {
