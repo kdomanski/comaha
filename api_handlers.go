@@ -15,6 +15,7 @@ func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) 
 		appResponse.Status = "ok"
 	}
 
+	// <UpdateCheck> tag
 	if appRequest.UpdateCheck != nil {
 		logContext.Debug("Handling UpdateCheck")
 		ucResp := appResponse.AddUpdateCheck()
@@ -28,6 +29,7 @@ func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) 
 		}
 	}
 
+	// <ping> tag
 	if appRequest.Ping != nil {
 		// TODO register info from the ping
 
@@ -36,6 +38,7 @@ func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) 
 		responsePing.Status = "ok"
 	}
 
+	// <Event> tag
 	for _, event := range appRequest.Events {
 		logContext.Warnf("Event to handle: '%v', resultv '%v'", event.Type, event.Result)
 		// TODO handle event
