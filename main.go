@@ -13,7 +13,6 @@ import (
 
 const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 
-var backend *singleFileBackend
 var db *userDB
 var fileBE fileBackend
 
@@ -47,12 +46,6 @@ func main() {
 	}
 	lfbe := newLocalFileBackend(path.Join(cwd, "storage"))
 	fileBE = &lfbe
-
-	backend, err = NewSingleFileBackend("payload-list.json")
-	if err != nil {
-		log.Errorf("Failed to load simple backend from 'payload-list.json': %v", err.Error())
-		os.Exit(1)
-	}
 
 	http.HandleFunc("/file", fileHandler)
 	http.HandleFunc("/update", updateHandler)

@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha1"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 )
 
@@ -34,8 +36,11 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func fileHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	log.Infof("Someone tried to access '%s'", r.URL.String())
+
 	fileid := r.URL.Query().Get("id")
-	http.ServeFile(w, r, fileid)
+	log.Infof("Handling request for %v", fileid)
+	http.ServeFile(w, r, path.Join("storage", fileid))
 }
 
 func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +141,22 @@ func applicationUpdate(w http.ResponseWriter, r *http.Request, app *omaha.App) {
 		return
 	}
 
-	payload := backend.GetPayload("user", "channel", "version")
+	v, err := parseVersionString(app.Version)
+	if err != nil {
+		log.Errorf("Could not parse client's version string: %v", err.Error())
+	}
+	payload, err := db.GetNewerPayload(v)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// TODO already at the newest version
+		} else {
+			log.Errorf("Failed checking for newer payload: %v", err.Error())
+		}
+	} else {
+		// TODO. version to string
+		// TODO client ID instead of IP
+		log.Infof("Found update to version '%v' (id %v) for client '%v'", "1.2.3.4.5.6", payload.Url, r.RemoteAddr)
+	}
 
 	size := payload.Size
 	sha1 := payload.SHA1
