@@ -130,7 +130,6 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Debugf("%#v", reqStructure)
 	applicationUpdate(w, r, reqStructure.Apps[0])
-
 }
 
 func applicationUpdate(w http.ResponseWriter, r *http.Request, app *omaha.App) {
@@ -148,9 +147,12 @@ func applicationUpdate(w http.ResponseWriter, r *http.Request, app *omaha.App) {
 	payload, err := db.GetNewerPayload(v)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// TODO already at the newest version
+			// TODO already at the newest version response
+			log.Infof("Client '%v' already up-to-date", r.RemoteAddr)
+			return
 		} else {
 			log.Errorf("Failed checking for newer payload: %v", err.Error())
+			return
 		}
 	} else {
 		// TODO. version to string
