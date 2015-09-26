@@ -15,7 +15,7 @@ type payloadVersion struct {
 	timestamp time.Time
 }
 
-const timelayout = "2006-01-02-0304"
+const timelayout = "2006-01-02-1504"
 
 func parseVersionString(input string) (payloadVersion, error) {
 	result := payloadVersion{}
@@ -30,9 +30,9 @@ func parseVersionString(input string) (payloadVersion, error) {
 		if err != nil {
 			return result, err
 		}
-		result.timestamp = t
+		result.timestamp = t.UTC()
 	} else {
-		result.timestamp = time.Unix(0, 0)
+		result.timestamp = time.Unix(0, 0).UTC()
 	}
 
 	intparts := strings.Split(mainparts[0], ".")
