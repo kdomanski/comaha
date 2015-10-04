@@ -16,21 +16,25 @@ const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 
 var db *userDB
 var fileBE fileBackend
-var myHostname string // local hostname advertised in responses
-var listenAddr string // address to listen on
-var listenPort int    // port to listen on
+
+var myHostname string      // local hostname advertised in responses
+var listenAddr string      // address to listen on
+var listenPort int         // port to listen on
+var disableTimestamps bool // disable timestamps in logs
 
 func main() {
 	var err error
 	flag.StringVar(&myHostname, "hostname", "", "hostname advertised when using local file backend")
 	flag.StringVar(&listenAddr, "listenaddr", "0.0.0.0", "address to listen on")
 	flag.IntVar(&listenPort, "port", 8080, "port to listen on")
+	flag.BoolVar(&disableTimestamps, "disabletimestamps", false, "disable timestamps in logs")
 	flag.Parse()
 	if myHostname == "" {
 		log.Error("You must set the 'hostname' parameter when using local file backend.")
 		os.Exit(1)
 	}
 
+	log.SetFormatter(&log.TextFormatter{DisableTimestamp: disableTimestamps})
 	log.SetLevel(log.DebugLevel)
 	log.Info("COmaha update server starting")
 
