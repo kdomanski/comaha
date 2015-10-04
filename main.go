@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	_ "github.com/mattn/go-sqlite3"
 	"math/rand"
@@ -16,10 +17,12 @@ const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 var db *userDB
 var fileBE fileBackend
 var myHostname string // local hostname advertised in responses
+var listenAddr string // address to listen on
 
 func main() {
 	var err error
 	flag.StringVar(&myHostname, "hostname", "", "hostname advertised when using local file backend")
+	flag.StringVar(&listenAddr, "listenaddr", "0.0.0.0", "address to listen on")
 	flag.Parse()
 	if myHostname == "" {
 		log.Error("You must set the 'hostname' parameter when using local file backend.")
@@ -54,5 +57,7 @@ func main() {
 	http.HandleFunc("/admin/add_payload", addPayloadHandler)
 	//http.HandleFunc("/admin/add_user", addUserHandler)
 	http.HandleFunc("/", homeHandler)
-	http.ListenAndServe(":8080", nil)
+
+	listenString := fmt.Sprintf("%v:8080", listenAddr)
+	http.ListenAndServe(listenString, nil)
 }
