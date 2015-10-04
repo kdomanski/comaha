@@ -18,11 +18,13 @@ var db *userDB
 var fileBE fileBackend
 var myHostname string // local hostname advertised in responses
 var listenAddr string // address to listen on
+var listenPort int    // port to listen on
 
 func main() {
 	var err error
 	flag.StringVar(&myHostname, "hostname", "", "hostname advertised when using local file backend")
 	flag.StringVar(&listenAddr, "listenaddr", "0.0.0.0", "address to listen on")
+	flag.IntVar(&listenPort, "port", 8080, "port to listen on")
 	flag.Parse()
 	if myHostname == "" {
 		log.Error("You must set the 'hostname' parameter when using local file backend.")
@@ -58,6 +60,6 @@ func main() {
 	//http.HandleFunc("/admin/add_user", addUserHandler)
 	http.HandleFunc("/", homeHandler)
 
-	listenString := fmt.Sprintf("%v:8080", listenAddr)
+	listenString := fmt.Sprintf("%v:%v", listenAddr, listenPort)
 	http.ListenAndServe(listenString, nil)
 }
