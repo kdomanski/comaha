@@ -8,6 +8,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/coreos/go-omaha/omaha"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -146,4 +147,27 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/xml")
 	w.Write(data)
+}
+
+func panelHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	// TODO log panel access
+
+	data, err := ioutil.ReadFile("static/images.html")
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		log.Error(err.Error())
+	}
+
+	t, err := template.New("images").Parse(string(data))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		log.Error(err.Error())
+	}
+
+	// TODO channels
+	images := db.ListImages("whatever channel")
+
+	t.Execute(w, images)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"sync"
 )
@@ -78,6 +79,43 @@ func (u *userDB) GetNewerPayload(currentVersion payloadVersion) (p payload, err 
 	return
 }
 
-func (u *userDB) ListImages(channel string) {
+type imageListElement struct {
+	Id      string
+	Version string
+	Sha1    string
+	Sha256  string
+	Size    int64
+}
 
+func (u *userDB) ListImages(channel string) []imageListElement {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	// TODO channels
+	result, err := u.db.Query("SELECT id,ver_build,ver_branch,ver_patch,ver_timestamp,sha1,sha256,size FROM payloads ORDER BY ver_build, ver_branch, ver_patch, ver_timestamp;")
+	if err != nil {
+		return []imageListElement{}
+	}
+
+	out := []imageListElement{}
+
+	for result.Next() {
+		var image imageListElement
+
+		var verBuild int
+		var verBranch int
+		var verPatch int
+		var verTimestamp int
+
+		err = result.Scan(&image.Id, &verBuild, &verBranch, &verPatch, &verTimestamp, &image.Sha1, &image.Sha256, &image.Size)
+		if err != nil {
+			return []imageListElement{}
+		}
+
+		// TODO timestamp formatting
+		image.Version = fmt.Sprintf("%v.%v.%v+%v", verBuild, verBranch, verPatch, verTimestamp)
+		out = append(out, image)
+	}
+
+	return out
 }
