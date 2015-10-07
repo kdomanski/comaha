@@ -43,6 +43,8 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
 	receivedSha1 := r.URL.Query().Get("sha1")
 	if receivedSha1 == "" {
 		http.Error(w, "Missing parameter 'sha1'", 400)
