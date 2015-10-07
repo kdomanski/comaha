@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime"
 )
 
 const noupdateResponse = `
@@ -43,6 +44,7 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
+	defer runtime.GC()
 	defer r.Body.Close()
 
 	receivedSha1 := r.URL.Query().Get("sha1")
