@@ -104,6 +104,29 @@ type imageListElement struct {
 	Size    int64
 }
 
+func (u *userDB) ListChannels() ([]string, error) {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	result, err := u.db.Query("SELECT DISTINCT channel FROM channel_payload_rel;")
+	if err != nil {
+		return nil, err
+	}
+
+	channels := []string{}
+
+	for result.Next() {
+		var chanName string
+		err = result.Scan(&chanName)
+		if err != nil {
+			return nil, err
+		}
+		channels = append(channels, chanName)
+	}
+
+	return channels, nil
+}
+
 func (u *userDB) ListImages(channel string) ([]imageListElement, error) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()

@@ -21,7 +21,14 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Images</a></li>
+            <li class="dropdown">
+              <a href="/panel" class="dropdown-toggle active" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Image channels<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                {{range .Channels}}
+                <li><a href="/panel?channel={{.}}">{{.}}</a></li>
+                {{end}}
+              </ul>
+            </li>
           </ul>
         </div>
       </div>
@@ -31,7 +38,7 @@
 
       <br />
       <div class="page-header">
-        <h1>Images</h1>
+        <h1>Images in channel '{{.CurrentChannel}}'</h1>
       </div>
       <div class="row">
         <div class="col-md-12">
@@ -47,7 +54,7 @@
               </tr>
             </thead>
             <tbody>
-              {{range .}}
+              {{range .Images}}
               <tr>
                 <td>{{.Version}}</td>
                 <td>{{.Id}}</td>

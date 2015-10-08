@@ -182,12 +182,38 @@ func panelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	images, err := db.ListImages("whatever")
+	channels, err := db.ListChannels()
+	if err != nil {
+		log.Error(err.Error())
+		http.Error(w, "Failed to retrieve list of channels", 500)
+		return
+	}
+
+	chosenChannel := r.URL.Query().Get("channel")
+	if chosenChannel == "" && len(channels) > 0 {
+		chosenChannel = channels[0]
+	}
+
+	images, err := db.ListImages(chosenChannel)
 	if err != nil {
 		log.Error(err.Error())
 		http.Error(w, "Failed to retrieve images for the channel", 500)
 		return
 	}
 
-	t.Execute(w, images)
+	for _, c := range channels {
+		log.Warn(c)
+	}
+
+	panelData := struct {
+		Images         []imageListElement
+		Channels       []string
+		CurrentChannel string
+	}{
+		images,
+		channels,
+		chosenChannel,
+	}
+
+	t.Execute(w, panelData)
 }
