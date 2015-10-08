@@ -10,7 +10,7 @@ type parsePairs struct {
 	expectedResult payloadVersion
 }
 
-func TestParsing(t *testing.T) {
+func TestVersionParsing(t *testing.T) {
 	testData := []parsePairs{
 		{"766.4.1", payloadVersion{build: 766, branch: 4, patch: 1, timestamp: time.Unix(0, 0).UTC()}},
 		{"0.1.2", payloadVersion{build: 0, branch: 1, patch: 2, timestamp: time.Unix(0, 0).UTC()}},
