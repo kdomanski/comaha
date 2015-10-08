@@ -147,7 +147,7 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 		"remoteAddr": r.RemoteAddr,
 	})
 
-	resp := omaha.NewResponse(myHostname)
+	resp := omaha.NewResponse(opts.Hostname)
 	for _, appReq := range reqStructure.Apps {
 		appResponse := resp.AddApp(appReq.Id)
 		handleApiApp(logContext, appReq, appResponse)

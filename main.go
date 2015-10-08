@@ -1,9 +1,9 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	flags "github.com/jessevdk/go-flags"
 	_ "github.com/mattn/go-sqlite3"
 	"math/rand"
 	"net/http"
@@ -17,24 +17,22 @@ const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 var db *userDB
 var fileBE fileBackend
 
-var myHostname string      // local hostname advertised in responses
-var listenAddr string      // address to listen on
-var listenPort int         // port to listen on
-var disableTimestamps bool // disable timestamps in logs
+var opts struct {
+	Hostname          string `short:"H" long:"hostname" description:"hostname advertised when using local file backend"`
+	ListenAddr        string `short:"l" long:"listenaddr" default:"0.0.0.0" description:"address to listen on"`
+	Port              int    `short:"P" long:"port" default:"8080" description:"port to listen on"`
+	DisableTimestamps bool   `short:"t" long:"disabletimestamps" description:"disable timestamps in logs (useful when using journald)"`
+}
 
 func main() {
 	var err error
-	flag.StringVar(&myHostname, "hostname", "", "hostname advertised when using local file backend")
-	flag.StringVar(&listenAddr, "listenaddr", "0.0.0.0", "address to listen on")
-	flag.IntVar(&listenPort, "port", 8080, "port to listen on")
-	flag.BoolVar(&disableTimestamps, "disabletimestamps", false, "disable timestamps in logs")
-	flag.Parse()
-	if myHostname == "" {
+	flags.Parse(&opts)
+	if opts.Hostname == "" {
 		log.Error("You must set the 'hostname' parameter when using local file backend.")
 		os.Exit(1)
 	}
 
-	log.SetFormatter(&log.TextFormatter{DisableTimestamp: disableTimestamps})
+	log.SetFormatter(&log.TextFormatter{DisableTimestamp: opts.DisableTimestamps})
 	log.SetLevel(log.DebugLevel)
 	log.Info("COmaha update server starting")
 
@@ -65,6 +63,6 @@ func main() {
 	//http.HandleFunc("/admin/add_user", addUserHandler)
 	http.HandleFunc("/", homeHandler)
 
-	listenString := fmt.Sprintf("%v:%v", listenAddr, listenPort)
+	listenString := fmt.Sprintf("%v:%v", opts.ListenAddr, opts.Port)
 	http.ListenAndServe(listenString, nil)
 }

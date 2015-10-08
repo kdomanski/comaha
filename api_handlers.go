@@ -67,7 +67,7 @@ func handleApiUpdateCheck(logContext *logrus.Entry, appVersion payloadVersion, c
 		ucResp.Status = "ok"
 		// TODO implement port configuration
 		// TODO implement protocol configuration (maybe use info from request URL?)
-		url := fmt.Sprintf("http://%v:8080/file?id=", myHostname)
+		url := fmt.Sprintf("http://%v:8080/file?id=", opts.Hostname)
 		ucResp.AddUrl(url)
 
 		manifest := ucResp.AddManifest("1.0.2")
