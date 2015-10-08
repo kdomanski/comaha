@@ -80,16 +80,16 @@ func (u *userDB) AddPayload(id, sha1, sha256 string, size int64, version payload
 	return nil
 }
 
-func (u *userDB) GetNewerPayload(currentVersion payloadVersion) (p payload, err error) {
+func (u *userDB) GetNewerPayload(currentVersion payloadVersion, channel string) (p payload, err error) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	q, err := u.db.Prepare("SELECT id,size,sha1,sha256 FROM payloads WHERE (ver_build > ?) OR (ver_build = ? AND ver_branch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch = ? AND ver_timestamp > ?) ORDER BY ver_build, ver_branch, ver_patch, ver_timestamp LIMIT 1;")
+	q, err := u.db.Prepare("SELECT id,size,sha1,sha256 FROM payloads AS P JOIN channel_payload_rel AS R ON P.id=R.payload WHERE R.channel=? AND ((ver_build > ?) OR (ver_build = ? AND ver_branch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch = ? AND ver_timestamp > ?)) ORDER BY ver_build, ver_branch, ver_patch, ver_timestamp LIMIT 1;")
 	if err != nil {
 		return
 	}
 
-	result := q.QueryRow(currentVersion.build, currentVersion.build, currentVersion.branch, currentVersion.build, currentVersion.branch, currentVersion.patch, currentVersion.build, currentVersion.branch, currentVersion.patch, currentVersion.timestamp.Unix())
+	result := q.QueryRow(channel, currentVersion.build, currentVersion.build, currentVersion.branch, currentVersion.build, currentVersion.branch, currentVersion.patch, currentVersion.build, currentVersion.branch, currentVersion.patch, currentVersion.timestamp.Unix())
 
 	err = result.Scan(&p.Url, &p.Size, &p.SHA1, &p.SHA256)
 

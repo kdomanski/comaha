@@ -30,7 +30,7 @@ func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) 
 			logContext.Errorf("Could not parse client's version string: %v", err.Error())
 			ucResp.Status = "error-invalidVersionString"
 		} else {
-			handleApiUpdateCheck(logContext, appVersion, appRequest.UpdateCheck, ucResp)
+			handleApiUpdateCheck(logContext, appVersion, appRequest.Track, appRequest.UpdateCheck, ucResp)
 		}
 	}
 
@@ -51,8 +51,8 @@ func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) 
 }
 
 // parse an 'UpdateCheck' tag of request and generate a corresponding 'UpdateCheck' tag of response
-func handleApiUpdateCheck(logContext *logrus.Entry, appVersion payloadVersion, ucRequest, ucResp *omaha.UpdateCheck) {
-	payload, err := db.GetNewerPayload(appVersion)
+func handleApiUpdateCheck(logContext *logrus.Entry, appVersion payloadVersion, channel string, ucRequest, ucResp *omaha.UpdateCheck) {
+	payload, err := db.GetNewerPayload(appVersion, channel)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logContext.Infof("Client already up-to-date")
