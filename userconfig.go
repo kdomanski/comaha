@@ -46,6 +46,23 @@ func (u *userDB) Close() error {
 	return u.db.Close()
 }
 
+func (u *userDB) AttachPayloadToChannel(id, channel string) error {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	q, err := u.db.Prepare("INSERT INTO channel_payload_rel (payload,channel) VALUES (?, ?);")
+	if err != nil {
+		return err
+	}
+
+	_, err = q.Exec(id, channel)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (u *userDB) AddPayload(id, sha1, sha256 string, size int64, version payloadVersion) error {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
@@ -87,14 +104,18 @@ type imageListElement struct {
 	Size    int64
 }
 
-func (u *userDB) ListImages(channel string) []imageListElement {
+func (u *userDB) ListImages(channel string) ([]imageListElement, error) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	// TODO channels
-	result, err := u.db.Query("SELECT id,ver_build,ver_branch,ver_patch,ver_timestamp,sha1,sha256,size FROM payloads ORDER BY ver_build, ver_branch, ver_patch, ver_timestamp;")
+	q, err := u.db.Prepare("SELECT id,ver_build,ver_branch,ver_patch,ver_timestamp,sha1,sha256,size FROM payloads AS P JOIN channel_payload_rel AS R ON P.id=R.payload WHERE R.channel=? ORDER BY ver_build, ver_branch, ver_patch, ver_timestamp;")
 	if err != nil {
-		return []imageListElement{}
+		return nil, err
+	}
+
+	result, err := q.Query(channel)
+	if err != nil {
+		return nil, err
 	}
 
 	out := []imageListElement{}
@@ -109,7 +130,7 @@ func (u *userDB) ListImages(channel string) []imageListElement {
 
 		err = result.Scan(&image.Id, &verBuild, &verBranch, &verPatch, &verTimestamp, &image.Sha1, &image.Sha256, &image.Size)
 		if err != nil {
-			return []imageListElement{}
+			return nil, err
 		}
 
 		// TODO timestamp formatting
@@ -117,5 +138,5 @@ func (u *userDB) ListImages(channel string) []imageListElement {
 		out = append(out, image)
 	}
 
-	return out
+	return out, nil
 }

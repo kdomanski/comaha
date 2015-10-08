@@ -63,6 +63,11 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing parameter 'version'", 400)
 		return
 	}
+	channel := r.URL.Query().Get("channel")
+	if channel == "" {
+		http.Error(w, "Missing parameter 'channel'", 400)
+		return
+	}
 	data := make([]byte, size)
 	rcvsize, err := io.ReadFull(r.Body, data)
 	if err != nil {
@@ -103,6 +108,11 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
 	err = db.AddPayload(id, calculatedSha1, calculatedSha256, size, versionData)
 	if err != nil {
 		log.Errorf("addPayloadHandler: adding payload to db: %v", err.Error())
+	}
+
+	err = db.AttachPayloadToChannel(id, channel)
+	if err != nil {
+		log.Errorf("addPayloadHandler: adding payload to channel: %v", err.Error())
 	}
 }
 
@@ -162,16 +172,22 @@ func panelHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		log.Error(err.Error())
+		return
 	}
 
 	t, err := template.New("images").Parse(string(data))
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		log.Error(err.Error())
+		return
 	}
 
-	// TODO channels
-	images := db.ListImages("whatever channel")
+	images, err := db.ListImages("whatever")
+	if err != nil {
+		log.Error(err.Error())
+		http.Error(w, "Failed to retrieve images for the channel", 500)
+		return
+	}
 
 	t.Execute(w, images)
 }
