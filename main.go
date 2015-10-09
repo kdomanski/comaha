@@ -22,6 +22,7 @@ var opts struct {
 	ListenAddr        string `short:"l" long:"listenaddr" default:"0.0.0.0" description:"address to listen on"`
 	Port              int    `short:"P" long:"port" default:"8080" description:"port to listen on"`
 	DisableTimestamps bool   `short:"t" long:"disabletimestamps" description:"disable timestamps in logs (useful when using journald)"`
+	Debug             bool   `short:"d" long:"debug" description:"run in debug mode"`
 }
 
 func main() {
@@ -33,7 +34,11 @@ func main() {
 	}
 
 	log.SetFormatter(&log.TextFormatter{DisableTimestamp: opts.DisableTimestamps})
-	log.SetLevel(log.DebugLevel)
+	if opts.Debug {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
+	}
 	log.Info("COmaha update server starting")
 
 	// seed the RNG
