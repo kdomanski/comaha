@@ -2,9 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"sync"
+	"time"
 )
 
 // sqlite3 cannot use a single connection concurrently - thus the mutex
@@ -146,18 +146,16 @@ func (u *userDB) ListImages(channel string) ([]imageListElement, error) {
 	for result.Next() {
 		var image imageListElement
 
-		var verBuild int
-		var verBranch int
-		var verPatch int
-		var verTimestamp int
+		var ver payloadVersion
+		var timestamp int64
 
-		err = result.Scan(&image.Id, &verBuild, &verBranch, &verPatch, &verTimestamp, &image.Sha1, &image.Sha256, &image.Size)
+		err = result.Scan(&image.Id, &ver.build, &ver.branch, &ver.patch, &timestamp, &image.Sha1, &image.Sha256, &image.Size)
 		if err != nil {
 			return nil, err
 		}
 
-		// TODO timestamp formatting
-		image.Version = fmt.Sprintf("%v.%v.%v+%v", verBuild, verBranch, verPatch, verTimestamp)
+		ver.timestamp = time.Unix(timestamp, 0)
+		image.Version = ver.String()
 		out = append(out, image)
 	}
 

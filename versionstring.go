@@ -62,3 +62,11 @@ func parseVersionString(input string) (payloadVersion, error) {
 
 	return result, nil
 }
+
+func (v payloadVersion) String() string {
+	if v.timestamp.Unix() == 0 {
+		return fmt.Sprintf("%v.%v.%v", v.build, v.branch, v.patch)
+	} else {
+		return fmt.Sprintf("%v.%v.%v+%v", v.build, v.branch, v.patch, v.timestamp.Format(timelayout))
+	}
+}
