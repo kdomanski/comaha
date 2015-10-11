@@ -201,10 +201,6 @@ func panelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, c := range channels {
-		log.Warn(c)
-	}
-
 	panelData := struct {
 		Images         []imageListElement
 		Channels       []string
