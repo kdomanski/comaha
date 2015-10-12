@@ -147,10 +147,17 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 		"remoteAddr": r.RemoteAddr,
 	})
 
+	// protocol and hostname for local storage URL building
+	scheme := "http"
+	if h := r.Header.Get("X-Forwarded-Proto"); h != "" {
+		scheme = h
+	}
+	localUrl := fmt.Sprintf("%v://%v", scheme, r.Host)
+
 	resp := omaha.NewResponse(opts.Hostname)
 	for _, appReq := range reqStructure.Apps {
 		appResponse := resp.AddApp(appReq.Id)
-		handleApiApp(logContext, appReq, appResponse)
+		handleApiApp(logContext, localUrl, appReq, appResponse)
 	}
 
 	data, err := xml.MarshalIndent(resp, "", "  ")

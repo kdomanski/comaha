@@ -2,14 +2,13 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/coreos/go-omaha/omaha"
 	"strconv"
 )
 
 // parse an 'app' tag of request and generate a corresponding 'app' tag of response
-func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) {
+func handleApiApp(logContext *logrus.Entry, localUrl string, appRequest, appResponse *omaha.App) {
 	logContext = logContext.WithFields(logrus.Fields{
 		"machineId": appRequest.MachineID,
 	})
@@ -30,7 +29,7 @@ func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) 
 			logContext.Errorf("Could not parse client's version string: %v", err.Error())
 			ucResp.Status = "error-invalidVersionString"
 		} else {
-			handleApiUpdateCheck(logContext, appVersion, appRequest.Track, appRequest.UpdateCheck, ucResp)
+			handleApiUpdateCheck(logContext, localUrl, appVersion, appRequest.Track, appRequest.UpdateCheck, ucResp)
 		}
 	}
 
@@ -51,7 +50,7 @@ func handleApiApp(logContext *logrus.Entry, appRequest, appResponse *omaha.App) 
 }
 
 // parse an 'UpdateCheck' tag of request and generate a corresponding 'UpdateCheck' tag of response
-func handleApiUpdateCheck(logContext *logrus.Entry, appVersion payloadVersion, channel string, ucRequest, ucResp *omaha.UpdateCheck) {
+func handleApiUpdateCheck(logContext *logrus.Entry, localUrl string, appVersion payloadVersion, channel string, ucRequest, ucResp *omaha.UpdateCheck) {
 	payload, err := db.GetNewerPayload(appVersion, channel)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -65,9 +64,7 @@ func handleApiUpdateCheck(logContext *logrus.Entry, appVersion payloadVersion, c
 		logContext.Infof("Found update to version '%v' (id %v)", "1.2.3.4.5.6", payload.Url)
 
 		ucResp.Status = "ok"
-		// TODO implement protocol configuration (maybe use info from request URL?)
-		url := fmt.Sprintf("http://%v:%v/file?id=", opts.Hostname, opts.Port)
-		ucResp.AddUrl(url)
+		ucResp.AddUrl(localUrl + "/file?id=")
 
 		manifest := ucResp.AddManifest("1.0.2")
 		manifest.AddPackage(payload.SHA1, payload.Url, strconv.FormatInt(payload.Size, 10), true)
