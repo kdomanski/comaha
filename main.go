@@ -18,7 +18,6 @@ var db *userDB
 var fileBE fileBackend
 
 var opts struct {
-	Hostname          string `short:"H" long:"hostname" description:"hostname advertised when using local file backend"`
 	ListenAddr        string `short:"l" long:"listenaddr" default:"0.0.0.0" description:"address to listen on"`
 	Port              int    `short:"P" long:"port" default:"8080" description:"port to listen on"`
 	DisableTimestamps bool   `short:"t" long:"disabletimestamps" description:"disable timestamps in logs (useful when using journald)"`
@@ -28,10 +27,6 @@ var opts struct {
 func main() {
 	var err error
 	flags.Parse(&opts)
-	if opts.Hostname == "" {
-		log.Error("You must set the 'hostname' parameter when using local file backend.")
-		os.Exit(1)
-	}
 
 	log.SetFormatter(&log.TextFormatter{DisableTimestamp: opts.DisableTimestamps})
 	if opts.Debug {

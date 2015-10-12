@@ -154,7 +154,7 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	localUrl := fmt.Sprintf("%v://%v", scheme, r.Host)
 
-	resp := omaha.NewResponse(opts.Hostname)
+	resp := omaha.NewResponse(r.Host)
 	for _, appReq := range reqStructure.Apps {
 		appResponse := resp.AddApp(appReq.Id)
 		handleApiApp(logContext, localUrl, appReq, appResponse)
