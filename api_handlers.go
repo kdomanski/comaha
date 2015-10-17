@@ -61,13 +61,13 @@ func handleApiUpdateCheck(logContext *logrus.Entry, localUrl string, appVersion 
 			ucRequest.Status = "error-internal"
 		}
 	} else {
-		logContext.Infof("Found update to version '%v' (id %v)", "1.2.3.4.5.6", payload.Url)
+		logContext.Infof("Found update to version '%v' (id %v)", payload.Version, payload.ID)
 
 		ucResp.Status = "ok"
 		ucResp.AddUrl(localUrl + "/file?id=")
 
 		manifest := ucResp.AddManifest("1.0.2")
-		manifest.AddPackage(payload.SHA1, payload.Url, strconv.FormatInt(payload.Size, 10), true)
+		manifest.AddPackage(payload.SHA1, payload.ID, strconv.FormatInt(payload.Size, 10), true)
 		action := manifest.AddAction("postinstall")
 		action.Sha256 = payload.SHA256
 		action.DisablePayloadBackoff = true

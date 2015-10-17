@@ -152,7 +152,7 @@ func TestDBListImages(t *testing.T) {
 	if n := len(imgs2); n != 1 {
 		t.Errorf("Expected 1 image, got %v", n)
 	}
-	if testEl := (imageListElement{Id: "4r12f", Version: "0.0.0", Sha1: "da23d", Sha256: "d21c", Size: 6143}); imgs2[0] != testEl {
+	if testEl := (payload{ID: "4r12f", Version: "0.0.0", SHA1: "da23d", SHA256: "d21c", Size: 6143}); imgs2[0] != testEl {
 		t.Errorf("Expected image %+v, got %+v", testEl, imgs2[0])
 	}
 
@@ -196,7 +196,7 @@ func TestDBLGetNewerPayload1(t *testing.T) {
 		t.Errorf("GetNewerPayload: %v", err.Error())
 	}
 
-	if testPl := (payload{SHA1: "abc", SHA256: "uvw", Size: 7423, Url: "xyz"}); pl != testPl {
+	if testPl := (payload{SHA1: "abc", SHA256: "uvw", Size: 7423, ID: "xyz"}); pl != testPl {
 		t.Errorf("Expected payload %+v, got %+v", testPl, pl)
 	}
 

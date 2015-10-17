@@ -209,7 +209,7 @@ func panelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	panelData := struct {
-		Images         []imageListElement
+		Images         []payload
 		Channels       []string
 		CurrentChannel string
 	}{

@@ -91,17 +91,9 @@ func (u *userDB) GetNewerPayload(currentVersion payloadVersion, channel string) 
 
 	result := q.QueryRow(channel, currentVersion.build, currentVersion.build, currentVersion.branch, currentVersion.build, currentVersion.branch, currentVersion.patch, currentVersion.build, currentVersion.branch, currentVersion.patch, currentVersion.timestamp.Unix())
 
-	err = result.Scan(&p.Url, &p.Size, &p.SHA1, &p.SHA256)
+	err = result.Scan(&p.ID, &p.Size, &p.SHA1, &p.SHA256)
 
 	return
-}
-
-type imageListElement struct {
-	Id      string
-	Version string
-	Sha1    string
-	Sha256  string
-	Size    int64
 }
 
 func (u *userDB) ListChannels() ([]string, error) {
@@ -127,7 +119,7 @@ func (u *userDB) ListChannels() ([]string, error) {
 	return channels, nil
 }
 
-func (u *userDB) ListImages(channel string) ([]imageListElement, error) {
+func (u *userDB) ListImages(channel string) ([]payload, error) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
@@ -141,15 +133,15 @@ func (u *userDB) ListImages(channel string) ([]imageListElement, error) {
 		return nil, err
 	}
 
-	out := []imageListElement{}
+	out := []payload{}
 
 	for result.Next() {
-		var image imageListElement
+		var image payload
 
 		var ver payloadVersion
 		var timestamp int64
 
-		err = result.Scan(&image.Id, &ver.build, &ver.branch, &ver.patch, &timestamp, &image.Sha1, &image.Sha256, &image.Size)
+		err = result.Scan(&image.ID, &ver.build, &ver.branch, &ver.patch, &timestamp, &image.SHA1, &image.SHA256, &image.Size)
 		if err != nil {
 			return nil, err
 		}
