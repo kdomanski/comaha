@@ -10,6 +10,7 @@ import (
 type fileBackend interface {
 	//StorageURL() string
 	Store(data []byte) (string, error)
+	Delete(id string) error
 }
 
 type localFileBackend struct {
