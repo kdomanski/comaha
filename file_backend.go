@@ -49,3 +49,9 @@ func (b *localFileBackend) Store(data []byte) (string, error) {
 
 	return id, nil
 }
+
+func (b *localFileBackend) Delete(id string) error {
+	filepath := path.Join(b.path, id)
+	err := os.Remove(filepath)
+	return err
+}
