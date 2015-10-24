@@ -55,10 +55,10 @@ func handleApiUpdateCheck(logContext *logrus.Entry, localUrl string, appVersion 
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logContext.Infof("Client already up-to-date")
-			ucRequest.Status = "noupdate"
+			ucResp.Status = "noupdate"
 		} else {
 			logContext.Errorf("Failed checking for newer payload: %v", err.Error())
-			ucRequest.Status = "error-internal"
+			ucResp.Status = "error-internal"
 		}
 	} else {
 		logContext.Infof("Found update to version '%v' (id %v)", "1.2.3.4.5.6", payload.Url)
