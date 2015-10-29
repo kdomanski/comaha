@@ -154,7 +154,7 @@ func (u *userDB) ListImages(channel string) ([]imageListElement, error) {
 			return nil, err
 		}
 
-		ver.timestamp = time.Unix(timestamp, 0)
+		ver.timestamp = time.Unix(timestamp, 0).UTC()
 		image.Version = ver.String()
 		out = append(out, image)
 	}
