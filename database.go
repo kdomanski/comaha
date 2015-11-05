@@ -39,6 +39,11 @@ func newUserDB(filename string) (*userDB, error) {
 		return nil, err
 	}
 
+	_, err = database.Exec("CREATE TABLE IF NOT EXISTS events(client TEXT, type INTEGER, result INTEGER, timestamp INTEGER)")
+	if err != nil {
+		return nil, err
+	}
+
 	return &userDB{db: database}, nil
 }
 
@@ -152,4 +157,18 @@ func (u *userDB) ListImages(channel string) ([]payload, error) {
 	}
 
 	return out, nil
+}
+
+func (u *userDB) LogEvent(client string, evType, evResult int) error {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	q, err := u.db.Prepare("INSERT INTO events (client,type,result,timestamp) VALUES (?, ?, ?, ?);")
+	if err != nil {
+		return err
+	}
+
+	_, err = q.Exec(client, evType, evResult, time.Now().UTC().Unix())
+
+	return err
 }
