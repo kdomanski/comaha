@@ -218,5 +218,10 @@ func panelHandler(w http.ResponseWriter, r *http.Request) {
 		chosenChannel,
 	}
 
-	t.Execute(w, panelData)
+	err = t.Execute(w, panelData)
+	if err != nil {
+		log.Errorf("Error parsing panel template: %v", err)
+		http.Error(w, "Error parsing panel template", 500)
+		return
+	}
 }
