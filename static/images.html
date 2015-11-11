@@ -28,6 +28,7 @@
                 <li><a href="/panel?channel={{.}}">{{.}}</a></li>
                 {{end}}
               </ul>
+              <li><a href="/panel?events">Events</a></li>
             </li>
           </ul>
         </div>
@@ -36,6 +37,7 @@
 
     <div class="container theme-showcase" role="main">
 
+      {{if .Images}}
       <br />
       <div class="page-header">
         <h1>Images in channel '{{.CurrentChannel}}'</h1>
@@ -68,6 +70,38 @@
           </table>
         </div>
       </div>
+      {{end}}
+
+      {{if .Events}}
+      <br />
+      <div class="page-header">
+        <h1>Event log</h1>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Machine ID</th>
+                <th>Type</th>
+                <th>Result</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{range .Events}}
+              <tr>
+                <td>{{.MachineID}}</td>
+                <td>{{.Type}}</td>
+                <td>{{.Result}}</td>
+                <td>{{.Timestamp}}</td>
+              </tr>
+              {{end}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {{end}}
 
     </div> <!-- /container -->
 

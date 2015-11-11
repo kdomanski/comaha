@@ -172,3 +172,43 @@ func (u *userDB) LogEvent(client string, evType, evResult int) error {
 
 	return err
 }
+
+type Event struct {
+	MachineID string
+	Type      int
+	Result    int
+	Timestamp string
+}
+
+func (u *userDB) GetEvents() ([]Event, error) {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	q, err := u.db.Prepare("SELECT client,type,result,timestamp FROM events ORDER BY timestamp ASC;")
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := q.Query()
+	if err != nil {
+		return nil, err
+	}
+
+	out := []Event{}
+
+	for result.Next() {
+		var ev Event
+
+		var timestamp int64
+
+		err = result.Scan(&ev.MachineID, &ev.Type, &ev.Result, &timestamp)
+		if err != nil {
+			return nil, err
+		}
+
+		ev.Timestamp = time.Unix(timestamp, 0).UTC().String()
+		out = append(out, ev)
+	}
+
+	return out, nil
+}

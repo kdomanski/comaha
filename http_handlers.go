@@ -196,24 +196,39 @@ func panelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	chosenChannel := r.URL.Query().Get("channel")
-	if chosenChannel == "" && len(channels) > 0 {
-		chosenChannel = channels[0]
-	}
+	var chosenChannel string
+	var images []payload
+	var events []Event
 
-	images, err := db.ListImages(chosenChannel)
-	if err != nil {
-		log.Error(err.Error())
-		http.Error(w, "Failed to retrieve images for the channel", 500)
-		return
+	if _, ok := r.URL.Query()["events"]; ok {
+		events, err = db.GetEvents()
+		if err != nil {
+			log.Error(err.Error())
+			http.Error(w, "Failed to retrieve events from the database", 500)
+			return
+		}
+	} else {
+		chosenChannel = r.URL.Query().Get("channel")
+		if chosenChannel == "" && len(channels) > 0 {
+			chosenChannel = channels[0]
+		}
+
+		images, err = db.ListImages(chosenChannel)
+		if err != nil {
+			log.Error(err.Error())
+			http.Error(w, "Failed to retrieve images for the channel", 500)
+			return
+		}
 	}
 
 	panelData := struct {
 		Images         []payload
+		Events         []Event
 		Channels       []string
 		CurrentChannel string
 	}{
 		images,
+		events,
 		channels,
 		chosenChannel,
 	}
