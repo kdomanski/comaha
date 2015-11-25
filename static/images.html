@@ -57,13 +57,13 @@
             </thead>
             <tbody>
               {{range .Images}}
-              <tr>
+              <tr class="imgentry" id="{{.ID}}">
                 <td>{{.Version}}</td>
                 <td>{{.ID}}</td>
                 <td>{{.SHA1}}</td>
                 <td>{{.SHA256}}</td>
                 <td>{{.Size}}</td>
-                <td><button type="button" class="btn btn-xs btn-danger">Delete</button></td>
+                <td><button data-imgid="{{.ID}}" type="button" class="btn btn-xs btn-danger deleteimg">Delete</button></td>
               </tr>
               {{end}}
             </tbody>
@@ -107,5 +107,17 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script>
+      $(".deleteimg").click(function() {
+        var id = $(this).data('imgid');
+
+        $.ajax("/admin/delete_payload?id=" + id)
+          .done(function() {
+            $("tr.imgentry#" + id).remove();
+          });
+        return false;
+        alert(id);
+      });
+    </script>
   </body>
 </html>
