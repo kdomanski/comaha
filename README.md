@@ -8,6 +8,9 @@ Basically, the following endpoints need to be proxied for proper operation:
  - `/file`
  - `/update`
  - `/panel`
+ - `/admin/`
+
+It is highly suggested to set up http basic authentication for `/admin/` path.
 
 #### Headers
 Set the following headers for `/update` endpoint:
