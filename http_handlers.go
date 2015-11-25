@@ -116,6 +116,28 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func deletePayloadHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "Missing parameter 'id'", 400)
+		return
+	}
+
+	err := db.DeletePayload(id)
+	if err != nil {
+		log.Errorf("deletePayloadHandler: removing DB entry for '%v': %v", id, err.Error())
+		http.Error(w, err.Error(), 500)
+	}
+
+	err = fileBE.Delete(id)
+	if err != nil {
+		log.Errorf("deletePayloadHandler: removing file for '%v': %v", id, err.Error())
+		http.Error(w, err.Error(), 500)
+	}
+}
+
 func shutdownHandler(w http.ResponseWriter, r *http.Request) {
 	os.Exit(0)
 }

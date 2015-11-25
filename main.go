@@ -59,6 +59,7 @@ func main() {
 	http.HandleFunc("/shutdown", shutdownHandler)
 	//http.HandleFunc("/admin/add_group", addGroupHandler)
 	http.HandleFunc("/admin/add_payload", addPayloadHandler)
+	http.HandleFunc("/admin/delete_payload", deletePayloadHandler)
 	http.HandleFunc("/panel", panelHandler)
 	//http.HandleFunc("/admin/add_user", addUserHandler)
 	http.HandleFunc("/", homeHandler)
