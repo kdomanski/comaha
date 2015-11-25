@@ -62,7 +62,7 @@
                 <td>{{.ID}}</td>
                 <td>{{.SHA1}}</td>
                 <td>{{.SHA256}}</td>
-                <td>{{.Size}}</td>
+                <td>{{toMB .Size}} MB</td>
                 <td><button data-imgid="{{.ID}}" type="button" class="btn btn-xs btn-danger deleteimg">Delete</button></td>
               </tr>
               {{end}}

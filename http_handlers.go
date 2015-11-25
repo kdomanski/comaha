@@ -204,7 +204,15 @@ func panelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := template.New("images").Parse(string(data))
+	funcMap := template.FuncMap{
+		"toMB": func(i int64) string {
+			divided := float32(i) / 1048576
+			formatted := fmt.Sprintf("%.1f", divided)
+			return formatted
+		},
+	}
+
+	t, err := template.New("images").Funcs(funcMap).Parse(string(data))
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		log.Error(err.Error())
