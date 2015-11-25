@@ -253,3 +253,65 @@ func TestDBLGetNewerPayload3(t *testing.T) {
 		t.Errorf("GetNewerPayload should have failed with sql.ErrNoRows")
 	}
 }
+
+func TestDBDeleting1(t *testing.T) {
+	db, err := newUserDB(":memory:")
+	if err != nil {
+		t.Errorf("newUserDB: %v", err.Error())
+	}
+
+	db.AddPayload("foo", "bar", "foobar", 1234, payloadVersion{build: 766, branch: 4, patch: 1, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("foo", "channel1")
+	db.AddPayload("4r12f", "da23d", "d21c", 6143, payloadVersion{})
+	db.AttachPayloadToChannel("4r12f", "channel1")
+	db.AddPayload("xyz", "abc", "uvw", 7423, payloadVersion{build: 800, branch: 1, patch: 2, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("xyz", "channel2")
+	db.AddPayload("d41234d321", "12d34", "1234", 533453, payloadVersion{build: 412, branch: 4, patch: 2143, timestamp: time.Unix(2142, 0).UTC()})
+	db.AttachPayloadToChannel("d41234d321", "channel2")
+
+	db.DeletePayload("d41234d321")
+
+	pds, err := db.ListImages("channel2")
+	if err != nil {
+		t.Errorf("ListImages: %v", err.Error())
+	}
+	if n := len(pds); n != 1 {
+		t.Errorf("Expected 1 image, got %v", n)
+	}
+
+	if leftID := pds[0].ID; leftID != "xyz" {
+		t.Error("Expected image 'xyz', got %v", leftID)
+	}
+}
+
+func TestDBDeleting2(t *testing.T) {
+	db, err := newUserDB(":memory:")
+	if err != nil {
+		t.Errorf("newUserDB: %v", err.Error())
+	}
+
+	db.AddPayload("foo", "bar", "foobar", 1234, payloadVersion{build: 766, branch: 4, patch: 1, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("foo", "channel1")
+	db.AddPayload("4r12f", "da23d", "d21c", 6143, payloadVersion{})
+	db.AttachPayloadToChannel("4r12f", "channel1")
+	db.AddPayload("xyz", "abc", "uvw", 7423, payloadVersion{build: 800, branch: 1, patch: 2, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("xyz", "channel2")
+	db.AddPayload("d41234d321", "12d34", "1234", 533453, payloadVersion{build: 412, branch: 4, patch: 2143, timestamp: time.Unix(2142, 0).UTC()})
+	db.AttachPayloadToChannel("d41234d321", "channel2")
+
+	db.DeletePayload("d41234d321")
+	db.DeletePayload("xyz")
+
+	chans, err := db.ListChannels()
+	if err != nil {
+		t.Errorf("ListChannels: %v", err.Error())
+	}
+	if n := len(chans); n != 1 {
+		t.Errorf("Expected 1 channel, got %v", n)
+	}
+
+	expectedChans := []string{"channel1"}
+	if !reflect.DeepEqual(chans, expectedChans) {
+		t.Errorf("Expected channels %+v, got %+v", expectedChans, chans)
+	}
+}

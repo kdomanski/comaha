@@ -85,6 +85,27 @@ func (u *userDB) AddPayload(id, sha1, sha256 string, size int64, version payload
 	return nil
 }
 
+func (u *userDB) DeletePayload(id string) error {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+	tx, err := u.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("DELETE from payloads WHERE id=?;", id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("DELETE from channel_payload_rel WHERE payload=?;", id)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 func (u *userDB) GetNewerPayload(currentVersion payloadVersion, channel string) (p payload, err error) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
