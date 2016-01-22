@@ -1,0 +1,11 @@
+package: main
+
+import:
+  - package: github.com/mattn/go-sqlite3
+    ref: v1.1.0
+  - package: github.com/Sirupsen/logrus
+    ref: v0.8.7
+  - package: github.com/coreos/go-omaha/omaha
+    ref: f26efba60fb7d1f8a526d64c2e1d6cfc09006d50
+  - package: github.com/jessevdk/go-flags
+    ref: d91b7c5a5ce0b1d99d765ec3fb20ab590e52ddcb
