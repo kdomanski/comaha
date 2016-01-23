@@ -280,7 +280,7 @@ func TestDBDeleting1(t *testing.T) {
 	}
 
 	if leftID := pds[0].ID; leftID != "xyz" {
-		t.Error("Expected image 'xyz', got %v", leftID)
+		t.Errorf("Expected image 'xyz', got %v", leftID)
 	}
 }
 
