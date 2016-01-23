@@ -25,8 +25,10 @@ var opts struct {
 }
 
 func main() {
-	var err error
-	flags.Parse(&opts)
+	_, err := flags.Parse(&opts)
+	if err != nil {
+		os.Exit(1)
+	}
 
 	log.SetFormatter(&log.TextFormatter{DisableTimestamp: opts.DisableTimestamps})
 	if opts.Debug {
