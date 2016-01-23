@@ -269,7 +269,10 @@ func TestDBDeleting1(t *testing.T) {
 	db.AddPayload("d41234d321", "12d34", "1234", 533453, payloadVersion{build: 412, branch: 4, patch: 2143, timestamp: time.Unix(2142, 0).UTC()})
 	db.AttachPayloadToChannel("d41234d321", "channel2")
 
-	db.DeletePayload("d41234d321")
+	err = db.DeletePayload("d41234d321")
+	if err != nil {
+		t.Errorf("DeletePayload: %v", err.Error())
+	}
 
 	pds, err := db.ListImages("channel2")
 	if err != nil {
@@ -313,5 +316,44 @@ func TestDBDeleting2(t *testing.T) {
 	expectedChans := []string{"channel1"}
 	if !reflect.DeepEqual(chans, expectedChans) {
 		t.Errorf("Expected channels %+v, got %+v", expectedChans, chans)
+	}
+}
+
+func TestDBSetChannelForceDowngrade(t *testing.T) {
+	db, err := newUserDB(":memory:")
+	if err != nil {
+		t.Errorf("newUserDB: %v", err.Error())
+	}
+
+	val, err := db.GetChannelForceDowngrade("foo")
+	if err != nil {
+		t.Errorf("GetChannelForceDowngrade: %v", err.Error())
+	}
+	if val {
+		t.Error("Default force_downgrade value is true, should have been false")
+	}
+
+	err = db.SetChannelForceDowngrade("foo", true)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	val, err = db.GetChannelForceDowngrade("foo")
+	if err != nil {
+		t.Errorf("GetChannelForceDowngrade: %v", err.Error())
+	}
+	if val == false {
+		t.Error("force_downgrade value is false, should have been true")
+	}
+
+	err = db.SetChannelForceDowngrade("foo", false)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	val, err = db.GetChannelForceDowngrade("foo")
+	if err != nil {
+		t.Errorf("GetChannelForceDowngrade: %v", err.Error())
+	}
+	if val == true {
+		t.Error("force_downgrade value is true, should have been false")
 	}
 }

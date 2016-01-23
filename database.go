@@ -44,6 +44,11 @@ func newUserDB(filename string) (*userDB, error) {
 		return nil, err
 	}
 
+	_, err = database.Exec("CREATE TABLE IF NOT EXISTS channel_settings(channel TEXT, force_downgrade INTEGER DEFAULT 0)")
+	if err != nil {
+		return nil, err
+	}
+
 	return &userDB{db: database}, nil
 }
 
@@ -99,6 +104,11 @@ func (u *userDB) DeletePayload(id string) error {
 	}
 
 	_, err = tx.Exec("DELETE from channel_payload_rel WHERE payload=?;", id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("DELETE from channel_settings WHERE channel=?;", id)
 	if err != nil {
 		return err
 	}
@@ -232,4 +242,57 @@ func (u *userDB) GetEvents() ([]Event, error) {
 	}
 
 	return out, nil
+}
+
+func (u *userDB) SetChannelForceDowngrade(channel string, value bool) error {
+	var intValue int
+
+	if value {
+		intValue = 1
+	} else {
+		intValue = 0
+	}
+
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	result, err := u.db.Exec("UPDATE channel_settings SET force_downgrade=? WHERE channel=?", intValue, channel)
+	if err != nil {
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		_, err = u.db.Exec("INSERT OR IGNORE INTO channel_settings (channel, force_downgrade) VALUES (?, ?);", channel, intValue)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (u *userDB) GetChannelForceDowngrade(channel string) (bool, error) {
+	row := u.db.QueryRow("SELECT force_downgrade FROM channel_settings WHERE channel=?;", channel)
+
+	var intValue int
+	err := row.Scan(&intValue)
+	if err != nil {
+		// unset, returning default
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	if intValue == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
