@@ -12,7 +12,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path"
 	"runtime"
 )
@@ -136,10 +135,6 @@ func deletePayloadHandler(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("deletePayloadHandler: removing file for '%v': %v", id, err.Error())
 		http.Error(w, err.Error(), 500)
 	}
-}
-
-func shutdownHandler(w http.ResponseWriter, r *http.Request) {
-	os.Exit(0)
 }
 
 func updateHandler(w http.ResponseWriter, r *http.Request) {

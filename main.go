@@ -58,7 +58,6 @@ func main() {
 
 	http.HandleFunc("/file", fileHandler)
 	http.HandleFunc("/update", updateHandler)
-	http.HandleFunc("/shutdown", shutdownHandler)
 	//http.HandleFunc("/admin/add_group", addGroupHandler)
 	http.HandleFunc("/admin/add_payload", addPayloadHandler)
 	http.HandleFunc("/admin/delete_payload", deletePayloadHandler)
