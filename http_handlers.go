@@ -8,6 +8,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/coreos/go-omaha/omaha"
+	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -25,14 +26,14 @@ const noupdateResponse = `
 </app>
 </response>`
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
+func homeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 	http.Error(w, "", 404)
 
 	log.Infof("Someone tried to access '%s'", r.URL.String())
 }
 
-func fileHandler(w http.ResponseWriter, r *http.Request) {
+func fileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 
 	log.Infof("Someone tried to access '%s'", r.URL.String())
@@ -42,7 +43,7 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("storage", fileid))
 }
 
-func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
+func addPayloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer runtime.GC()
 	defer r.Body.Close()
 
@@ -115,7 +116,7 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deletePayloadHandler(w http.ResponseWriter, r *http.Request) {
+func deletePayloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 
 	id := r.URL.Query().Get("id")
@@ -137,7 +138,7 @@ func deletePayloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func updateHandler(w http.ResponseWriter, r *http.Request) {
+func updateHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 
 	log.Infof("Handling an update request from %v", r.RemoteAddr)
@@ -187,7 +188,7 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func panelHandler(w http.ResponseWriter, r *http.Request) {
+func panelHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 
 	// TODO log panel access

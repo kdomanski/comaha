@@ -9,3 +9,5 @@ import:
     ref: f26efba60fb7d1f8a526d64c2e1d6cfc09006d50
   - package: github.com/jessevdk/go-flags
     ref: d91b7c5a5ce0b1d99d765ec3fb20ab590e52ddcb
+  - package: github.com/julienschmidt/httprouter
+    ref: v1.1

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/julienschmidt/httprouter"
 	_ "github.com/mattn/go-sqlite3"
 	"math/rand"
 	"net/http"
@@ -56,15 +57,17 @@ func main() {
 	lfbe := newLocalFileBackend(path.Join(cwd, "storage"))
 	fileBE = &lfbe
 
-	http.HandleFunc("/file", fileHandler)
-	http.HandleFunc("/update", updateHandler)
+	router := httprouter.New()
+
+	router.GET("/file", fileHandler)
+	router.POST("/update", updateHandler)
 	//http.HandleFunc("/admin/add_group", addGroupHandler)
-	http.HandleFunc("/admin/add_payload", addPayloadHandler)
-	http.HandleFunc("/admin/delete_payload", deletePayloadHandler)
-	http.HandleFunc("/panel", panelHandler)
+	router.POST("/admin/add_payload", addPayloadHandler)
+	router.GET("/admin/delete_payload", deletePayloadHandler)
+	router.GET("/panel", panelHandler)
 	//http.HandleFunc("/admin/add_user", addUserHandler)
-	http.HandleFunc("/", homeHandler)
+	router.GET("/", homeHandler)
 
 	listenString := fmt.Sprintf("%v:%v", opts.ListenAddr, opts.Port)
-	http.ListenAndServe(listenString, nil)
+	http.ListenAndServe(listenString, router)
 }
