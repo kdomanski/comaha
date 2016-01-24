@@ -116,35 +116,44 @@ func (u *sqliteDB) DeletePayload(id string) error {
 	return tx.Commit()
 }
 
-func (u *sqliteDB) GetNewerPayload(currentVersion payloadVersion, channel string) (p payload, err error) {
+func (u *sqliteDB) GetNewerPayload(currentVersion payloadVersion, channel string) (*payload, error) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	q, err := u.db.Prepare(`SELECT id,size,sha1,sha256 FROM payloads AS P
+	q, err := u.db.Prepare(`SELECT id,size,sha1,sha256,ver_build,ver_branch,ver_patch,ver_timestamp,ifnull(force_downgrade,0) FROM payloads AS P
 		JOIN channel_payload_rel AS R ON P.id=R.payload
 		LEFT OUTER JOIN channel_settings AS S ON S.channel=R.channel
 		WHERE R.channel=?
-		AND (
-			(
-				(ifnull(S.force_downgrade,0)=0)
-				AND (
-					(ver_build > ?)
-					OR (ver_build = ? AND ver_branch > ?)
-					OR (ver_build = ? AND ver_branch = ? AND ver_patch > ?)
-					OR (ver_build = ? AND ver_branch = ? AND ver_patch = ? AND ver_timestamp > ?)
-				)
-			)
-		)
 		ORDER BY ver_build DESC, ver_branch DESC, ver_patch DESC, ver_timestamp DESC LIMIT 1;`)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	result := q.QueryRow(channel, currentVersion.build, currentVersion.build, currentVersion.branch, currentVersion.build, currentVersion.branch, currentVersion.patch, currentVersion.build, currentVersion.branch, currentVersion.patch, currentVersion.timestamp.Unix())
+	result := q.QueryRow(channel)
 
-	err = result.Scan(&p.ID, &p.Size, &p.SHA1, &p.SHA256)
+	var p payload
+	var latest payloadVersion
+	var forceDowngrade int
+	var latestTimestamp int64
+	err = result.Scan(&p.ID, &p.Size, &p.SHA1, &p.SHA256, &latest.build, &latest.branch, &latest.patch, &latestTimestamp, &forceDowngrade)
+	if err != nil {
+		return nil, err
+	}
+	latest.timestamp = time.Unix(latestTimestamp, 0).UTC()
 
-	return
+	if forceDowngrade == 0 {
+		if latest.IsGreater(currentVersion) {
+			return &p, nil
+		}
+		return nil, nil
+	}
+
+	// forceDowngrade != 0
+	if latest.IsEqual(currentVersion) == false {
+		return &p, nil
+	}
+
+	return nil, nil
 }
 
 func (u *sqliteDB) ListChannels() ([]string, error) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/Sirupsen/logrus"
 	"github.com/coreos/go-omaha/omaha"
 	"strconv"
@@ -100,14 +99,15 @@ func handleApiEvents(logContext *logrus.Entry, client string, events []*omaha.Ev
 func handleApiUpdateCheck(logContext *logrus.Entry, localUrl string, appVersion payloadVersion, channel string, ucRequest, ucResp *omaha.UpdateCheck) {
 	payload, err := db.GetNewerPayload(appVersion, channel)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		logContext.Errorf("Failed checking for newer payload: %v", err.Error())
+		ucResp.Status = "error-internal"
+	} else {
+		if payload == nil {
 			logContext.Infof("Client already up-to-date")
 			ucResp.Status = "noupdate"
-		} else {
-			logContext.Errorf("Failed checking for newer payload: %v", err.Error())
-			ucResp.Status = "error-internal"
+			return
 		}
-	} else {
+
 		logContext.Infof("Found update to version '%v' (id %v)", payload.Version, payload.ID)
 
 		ucResp.Status = "ok"

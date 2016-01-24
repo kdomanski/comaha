@@ -70,3 +70,48 @@ func (v payloadVersion) String() string {
 		return fmt.Sprintf("%v.%v.%v+%v", v.build, v.branch, v.patch, v.timestamp.Format(timelayout))
 	}
 }
+
+func (v payloadVersion) IsGreater(other payloadVersion) bool {
+	switch {
+	case v.build > other.build:
+		return true
+	case v.build < other.build:
+		return false
+	}
+
+	switch {
+	case v.branch > other.branch:
+		return true
+	case v.branch < other.branch:
+		return false
+	}
+
+	switch {
+	case v.patch > other.patch:
+		return true
+	case v.patch < other.patch:
+		return false
+	}
+
+	vTime := v.timestamp.UTC().Unix()
+	otherTime := other.timestamp.UTC().Unix()
+
+	if vTime > otherTime {
+		return true
+	}
+
+	return false
+}
+
+func (v payloadVersion) IsEqual(other payloadVersion) bool {
+	return v.build == other.build &&
+		v.branch == other.branch &&
+		v.patch == other.patch &&
+		v.timestamp.UTC().Unix() == other.timestamp.UTC().Unix()
+}
+
+func (v payloadVersion) IsZero(other payloadVersion) bool {
+	return v.build == 0 &&
+		v.branch == 0 &&
+		v.patch == 0
+}

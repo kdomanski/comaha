@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"reflect"
 	"sort"
 	"testing"
@@ -190,13 +189,20 @@ func TestDBLGetNewerPayload1(t *testing.T) {
 	ver, err := parseVersionString("766.6.0")
 	if err != nil {
 		t.Errorf("parseVersionString: %v", err.Error())
+		return
 	}
 	pl, err := db.GetNewerPayload(ver, "channel1")
 	if err != nil {
 		t.Errorf("GetNewerPayload: %v", err.Error())
+		return
 	}
 
-	if testPl := (payload{SHA1: "abc", SHA256: "uvw", Size: 7423, ID: "xyz"}); pl != testPl {
+	testPl := (payload{SHA1: "abc", SHA256: "uvw", Size: 7423, ID: "xyz"})
+	if pl == nil {
+		t.Errorf("Expected payload %+v, got nil", testPl)
+		return
+	}
+	if *pl != testPl {
 		t.Errorf("Expected payload %+v, got %+v", testPl, pl)
 	}
 
@@ -222,9 +228,12 @@ func TestDBLGetNewerPayload2(t *testing.T) {
 	if err != nil {
 		t.Errorf("parseVersionString: %v", err.Error())
 	}
-	_, err = db.GetNewerPayload(ver, "channel1")
-	if err != sql.ErrNoRows {
-		t.Errorf("GetNewerPayload should have failed with sql.ErrNoRows")
+	p, err := db.GetNewerPayload(ver, "channel1")
+	if err != nil {
+		t.Errorf("GetNewerPayload: %v", err.Error())
+	}
+	if p != nil {
+		t.Errorf("GetNewerPayload should have returned nil, instead got %+v", p)
 	}
 }
 
@@ -248,9 +257,73 @@ func TestDBLGetNewerPayload3(t *testing.T) {
 	if err != nil {
 		t.Errorf("parseVersionString: %v", err.Error())
 	}
-	_, err = db.GetNewerPayload(ver, "channel1")
-	if err != sql.ErrNoRows {
-		t.Errorf("GetNewerPayload should have failed with sql.ErrNoRows")
+
+	p, err := db.GetNewerPayload(ver, "channel1")
+	if err != nil {
+		t.Errorf("GetNewerPayload: %v", err.Error())
+	}
+	if p != nil {
+		t.Errorf("GetNewerPayload should have returned nil, instead got %+v", p)
+	}
+}
+
+// have newer version, force downgrade
+func TestDBLGetNewerPayload4(t *testing.T) {
+	db, err := newSqliteDB(":memory:")
+	if err != nil {
+		t.Errorf("newSqliteDB: %v", err.Error())
+	}
+
+	db.AddPayload("foo", "bar", "foobar", 1234, payloadVersion{build: 766, branch: 4, patch: 1, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("foo", "channel1")
+	db.AddPayload("xyz", "abc", "uvw", 7423, payloadVersion{build: 800, branch: 1, patch: 2, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("xyz", "channel1")
+
+	db.SetChannelForceDowngrade("channel1", true)
+
+	ver, err := parseVersionString("935.6.0")
+	if err != nil {
+		t.Errorf("parseVersionString: %v", err.Error())
+	}
+	pl, err := db.GetNewerPayload(ver, "channel1")
+	if err != nil {
+		t.Errorf("GetNewerPayload: %v", err.Error())
+	}
+
+	testPl := payload{SHA1: "abc", SHA256: "uvw", Size: 7423, ID: "xyz"}
+	if pl == nil {
+		t.Errorf("Expected payload %+v, got nil", testPl)
+		return
+	}
+	if *pl != testPl {
+		t.Errorf("Expected payload %+v, got %+v", testPl, pl)
+	}
+}
+
+// force downgrade enabled, have correct version
+func TestDBLGetNewerPayload5(t *testing.T) {
+	db, err := newSqliteDB(":memory:")
+	if err != nil {
+		t.Errorf("newSqliteDB: %v", err.Error())
+	}
+
+	db.AddPayload("foo", "bar", "foobar", 1234, payloadVersion{build: 766, branch: 4, patch: 1, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("foo", "channel1")
+	db.AddPayload("xyz", "abc", "uvw", 7423, payloadVersion{build: 800, branch: 1, patch: 2, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("xyz", "channel1")
+
+	db.SetChannelForceDowngrade("channel1", true)
+
+	ver, err := parseVersionString("800.1.2")
+	if err != nil {
+		t.Errorf("parseVersionString: %v", err.Error())
+	}
+	p, err := db.GetNewerPayload(ver, "channel1")
+	if err != nil {
+		t.Errorf("GetNewerPayload: %v", err.Error())
+	}
+	if p != nil {
+		t.Errorf("GetNewerPayload should have returned nil, instead got %+v", p)
 	}
 }
 

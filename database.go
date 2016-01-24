@@ -4,7 +4,7 @@ type userDB interface {
 	AddPayload(id, sha1, sha256 string, size int64, version payloadVersion) error
 	DeletePayload(id string) error
 	AttachPayloadToChannel(id, channel string) error
-	GetNewerPayload(currentVersion payloadVersion, channel string) (p payload, err error)
+	GetNewerPayload(currentVersion payloadVersion, channel string) (*payload, error)
 
 	ListImages(channel string) ([]payload, error)
 	ListChannels() ([]string, error)
