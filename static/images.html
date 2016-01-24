@@ -31,6 +31,10 @@
               <li><a href="/panel?events">Events</a></li>
             </li>
           </ul>
+            <div class="navbar-form navbar-right">
+              <button type="button" class="btn btn-success comaha_downgrade_toggle" data-state="1" {{if .ForceDowngrade}}style="display:none"{{end}} data-toggle="modal" data-target="#downgradeSwitchDialog">No downgrades</button>
+              <button type="button" class="btn btn-danger comaha_downgrade_toggle" data-state="0" {{if not .ForceDowngrade}}style="display:none"{{end}} data-toggle="modal" data-target="#downgradeSwitchDialog">Forced downgrades enabled</button>
+            </div>
         </div>
       </div>
     </nav>
@@ -105,9 +109,24 @@
 
     </div> <!-- /container -->
 
+    <div class="modal fade" tabindex="-1" role="dialog" id="downgradeSwitchDialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Are you sure?</h4></div>
+          <div class="modal-body"><p>One fine body&hellip;</p></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="downgradeDialogConfirm">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script>
+      var channel = "{{.CurrentChannel}}"
+
       $(".deleteimg").click(function() {
         var id = $(this).data('imgid');
 
@@ -117,6 +136,34 @@
           });
         return false;
         alert(id);
+      });
+
+      $('#downgradeSwitchDialog').on('show.bs.modal', function (event) {
+        var state = $(event.relatedTarget).data('state')
+        $(this).find('#downgradeDialogConfirm').data('state', state)
+
+        var body = $(this).find('.modal-body')
+        if (state == 1) {
+          body.text('This will enable forced downgrading for this channel.');
+        } else {
+          body.text('This will disable forced downgrading for this channel.');
+        }
+      });
+
+      $('#downgradeDialogConfirm').on('click', function () {
+        var url = `/admin/channel/${channel}/force_downgrade`
+        var state = $(this).data('state');
+        $.ajax({
+          method: "POST",
+          url: url,
+          data: state.toString()
+        })
+          .done(function() {
+            $('#downgradeSwitchDialog').modal('hide');
+          })
+          .success(function() {
+            $(".comaha_downgrade_toggle").toggle();
+          });
       });
     </script>
   </body>
