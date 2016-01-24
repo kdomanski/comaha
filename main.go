@@ -15,7 +15,7 @@ import (
 
 const coreOSAppID = "{e96281a6-d1af-4bde-9a0a-97b76e56dc57}"
 
-var db *userDB
+var db userDB
 var fileBE fileBackend
 
 var opts struct {
@@ -43,7 +43,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	// open db
-	db, err = newUserDB("users.sqlite")
+	db, err = newSqliteDB("users.sqlite")
 	if err != nil {
 		log.Errorf("Could not open database: %v", err.Error())
 		os.Exit(1)

@@ -24,9 +24,9 @@ func TestDBAdding(t *testing.T) {
 		{"fq435r34qd34r", "235r3a2q23r3fa32", "af3fa32fa3", 135235413242, payloadVersion{}},
 	}
 
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	for _, datum := range testData {
@@ -36,9 +36,9 @@ func TestDBAdding(t *testing.T) {
 }
 
 func TestDBListChannels1(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	// 1 image per channel
@@ -63,9 +63,9 @@ func TestDBListChannels1(t *testing.T) {
 }
 
 func TestDBListChannels2(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	// 2 images per channel
@@ -94,9 +94,9 @@ func TestDBListChannels2(t *testing.T) {
 }
 
 func TestDBListChannels3(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	// 2 images without channel
@@ -123,9 +123,9 @@ func TestDBListChannels3(t *testing.T) {
 }
 
 func TestDBListImages(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	// 2 images in channel 1, 1 in channel 2, fourth without channel
@@ -173,9 +173,9 @@ func TestDBListImages(t *testing.T) {
 
 // behind the latest version from 'channel1'
 func TestDBLGetNewerPayload1(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	// 2 images in channel 1, 1 in channel 2, fourth without channel
@@ -204,9 +204,9 @@ func TestDBLGetNewerPayload1(t *testing.T) {
 
 // at the latest version from 'channel1'
 func TestDBLGetNewerPayload2(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	// 2 images in channel 1, 1 in channel 2, fourth without channel
@@ -230,9 +230,9 @@ func TestDBLGetNewerPayload2(t *testing.T) {
 
 // ahead of the latest version from 'channel1'
 func TestDBLGetNewerPayload3(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	// 2 images in channel 1, 1 in channel 2, fourth without channel
@@ -255,9 +255,9 @@ func TestDBLGetNewerPayload3(t *testing.T) {
 }
 
 func TestDBDeleting1(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	db.AddPayload("foo", "bar", "foobar", 1234, payloadVersion{build: 766, branch: 4, patch: 1, timestamp: time.Unix(0, 0).UTC()})
@@ -288,9 +288,9 @@ func TestDBDeleting1(t *testing.T) {
 }
 
 func TestDBDeleting2(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	db.AddPayload("foo", "bar", "foobar", 1234, payloadVersion{build: 766, branch: 4, patch: 1, timestamp: time.Unix(0, 0).UTC()})
@@ -320,9 +320,9 @@ func TestDBDeleting2(t *testing.T) {
 }
 
 func TestDBSetChannelForceDowngrade(t *testing.T) {
-	db, err := newUserDB(":memory:")
+	db, err := newSqliteDB(":memory:")
 	if err != nil {
-		t.Errorf("newUserDB: %v", err.Error())
+		t.Errorf("newSqliteDB: %v", err.Error())
 	}
 
 	val, err := db.GetChannelForceDowngrade("foo")
