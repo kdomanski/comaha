@@ -138,6 +138,47 @@ func deletePayloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	}
 }
 
+func channelForceDowngradeGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	channel := ps.ByName("channel")
+	value, err := db.GetChannelForceDowngrade(channel)
+	if err != nil {
+		log.Errorf("channelForceDowngradeGetHandler: getting FD value for channel '%v': %v", channel, err.Error())
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	if value {
+		fmt.Fprint(w, 1)
+	} else {
+		fmt.Fprint(w, 0)
+	}
+}
+
+func channelForceDowngradePostHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	channel := ps.ByName("channel")
+
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	value := string(body)
+
+	var boolValue bool
+	switch value {
+	case "1":
+		boolValue = true
+	case "0":
+		boolValue = false
+	default:
+		s := fmt.Sprintf("Invalid value '%v'", value)
+		http.Error(w, s, http.StatusBadRequest)
+	}
+
+	err = db.SetChannelForceDowngrade(channel, boolValue)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func updateHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 
@@ -223,6 +264,7 @@ func panelHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	var chosenChannel string
+	var forceDowngrade bool
 	var images []payload
 	var events []Event
 
@@ -239,6 +281,13 @@ func panelHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			chosenChannel = channels[0]
 		}
 
+		forceDowngrade, err = db.GetChannelForceDowngrade(chosenChannel)
+		if err != nil {
+			log.Error(err.Error())
+			http.Error(w, "Failed to retrieve force_downgrade option for the channel", 500)
+			return
+		}
+
 		images, err = db.ListImages(chosenChannel)
 		if err != nil {
 			log.Error(err.Error())
@@ -252,11 +301,13 @@ func panelHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		Events         []Event
 		Channels       []string
 		CurrentChannel string
+		ForceDowngrade bool
 	}{
 		images,
 		events,
 		channels,
 		chosenChannel,
+		forceDowngrade,
 	}
 
 	err = t.Execute(w, panelData)

@@ -64,6 +64,8 @@ func main() {
 	//http.HandleFunc("/admin/add_group", addGroupHandler)
 	router.POST("/admin/add_payload", addPayloadHandler)
 	router.GET("/admin/delete_payload", deletePayloadHandler)
+	router.GET("/admin/channel/:channel/force_downgrade", channelForceDowngradeGetHandler)
+	router.POST("/admin/channel/:channel/force_downgrade", channelForceDowngradePostHandler)
 	router.GET("/panel", panelHandler)
 	//http.HandleFunc("/admin/add_user", addUserHandler)
 	router.GET("/", homeHandler)
