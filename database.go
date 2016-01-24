@@ -120,7 +120,22 @@ func (u *userDB) GetNewerPayload(currentVersion payloadVersion, channel string) 
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	q, err := u.db.Prepare("SELECT id,size,sha1,sha256 FROM payloads AS P JOIN channel_payload_rel AS R ON P.id=R.payload WHERE R.channel=? AND ((ver_build > ?) OR (ver_build = ? AND ver_branch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch > ?) OR (ver_build = ? AND ver_branch = ? AND ver_patch = ? AND ver_timestamp > ?)) ORDER BY ver_build DESC, ver_branch DESC, ver_patch DESC, ver_timestamp DESC LIMIT 1;")
+	q, err := u.db.Prepare(`SELECT id,size,sha1,sha256 FROM payloads AS P
+		JOIN channel_payload_rel AS R ON P.id=R.payload
+		LEFT OUTER JOIN channel_settings AS S ON S.channel=R.channel
+		WHERE R.channel=?
+		AND (
+			(
+				(ifnull(S.force_downgrade,0)=0)
+				AND (
+					(ver_build > ?)
+					OR (ver_build = ? AND ver_branch > ?)
+					OR (ver_build = ? AND ver_branch = ? AND ver_patch > ?)
+					OR (ver_build = ? AND ver_branch = ? AND ver_patch = ? AND ver_timestamp > ?)
+				)
+			)
+		)
+		ORDER BY ver_build DESC, ver_branch DESC, ver_patch DESC, ver_timestamp DESC LIMIT 1;`)
 	if err != nil {
 		return
 	}
