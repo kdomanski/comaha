@@ -5,6 +5,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/julienschmidt/httprouter"
+	"github.com/kdomanski/comaha/file-backends/local"
 	_ "github.com/mattn/go-sqlite3"
 	"math/rand"
 	"net/http"
@@ -23,6 +24,7 @@ var opts struct {
 	Port              int    `short:"P" long:"port" default:"8080" description:"port to listen on"`
 	DisableTimestamps bool   `short:"t" long:"disabletimestamps" description:"disable timestamps in logs (useful when using journald)"`
 	Debug             bool   `short:"d" long:"debug" description:"run in debug mode"`
+	Backend           string `long:"file-backend" description:"type of file backend" default:"local"`
 }
 
 func main() {
@@ -50,12 +52,16 @@ func main() {
 	}
 	defer db.Close()
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Errorf("Could not cwd: %v", err.Error())
+	switch opts.Backend {
+	case "local":
+		cwd, err := os.Getwd()
+		if err != nil {
+			log.Errorf("Could not cwd: %v", err.Error())
+		}
+		fileBE = local.New(path.Join(cwd, "storage"))
+	default:
+		log.Fatalf("Unknown file backend '%v'", opts.Backend)
 	}
-	lfbe := newLocalFileBackend(path.Join(cwd, "storage"))
-	fileBE = &lfbe
 
 	router := httprouter.New()
 

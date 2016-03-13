@@ -1,4 +1,4 @@
-package main
+package local
 
 import (
 	"io/ioutil"
@@ -17,7 +17,7 @@ func TestStorage(t *testing.T) {
 	}
 	defer os.RemoveAll(tempdir)
 
-	b := newLocalFileBackend(tempdir)
+	b := New(tempdir)
 
 	// first file
 	id1, err := b.Store(testdata1)

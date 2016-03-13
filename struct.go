@@ -7,3 +7,9 @@ type payload struct {
 	SHA256  string
 	Size    int64
 }
+
+type fileBackend interface {
+	//StorageURL() string
+	Store(data []byte) (string, error)
+	Delete(id string) error
+}

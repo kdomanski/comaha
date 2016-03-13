@@ -1,4 +1,4 @@
-package main
+package local
 
 import (
 	log "github.com/Sirupsen/logrus"
@@ -7,18 +7,12 @@ import (
 	"path"
 )
 
-type fileBackend interface {
-	//StorageURL() string
-	Store(data []byte) (string, error)
-	Delete(id string) error
-}
-
 type localFileBackend struct {
 	path string
 }
 
-func newLocalFileBackend(path string) localFileBackend {
-	return localFileBackend{path: path}
+func New(path string) *localFileBackend {
+	return &localFileBackend{path: path}
 }
 
 var randStringRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
