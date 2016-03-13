@@ -19,37 +19,46 @@ func newSqliteDB(filename string) (*sqliteDB, error) {
 		return nil, err
 	}
 
-	_, err = database.Exec("CREATE TABLE IF NOT EXISTS payloads(id TEXT, size INTEGER, sha1 TEXT, sha256 TEXT, ver_build INTEGER, ver_branch INTEGER, ver_patch INTEGER, ver_timestamp INTEGER)")
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = database.Exec("CREATE TABLE IF NOT EXISTS channel_payload_rel(payload TEXT, channel TEXT)")
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = database.Exec("CREATE TABLE IF NOT EXISTS client(id TEXT, name TEXT)")
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = database.Exec("CREATE TABLE IF NOT EXISTS channel_client_rel(client TEXT, channel TEXT)")
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = database.Exec("CREATE TABLE IF NOT EXISTS events(client TEXT, type INTEGER, result INTEGER, timestamp INTEGER)")
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = database.Exec("CREATE TABLE IF NOT EXISTS channel_settings(channel TEXT, force_downgrade INTEGER DEFAULT 0)")
+	err = initStructure(database)
 	if err != nil {
 		return nil, err
 	}
 
 	return &sqliteDB{db: database}, nil
+}
+
+func initStructure(database *sql.DB) error {
+	_, err := database.Exec("CREATE TABLE IF NOT EXISTS payloads(id TEXT, size INTEGER, sha1 TEXT, sha256 TEXT, ver_build INTEGER, ver_branch INTEGER, ver_patch INTEGER, ver_timestamp INTEGER)")
+	if err != nil {
+		return err
+	}
+
+	_, err = database.Exec("CREATE TABLE IF NOT EXISTS channel_payload_rel(payload TEXT, channel TEXT)")
+	if err != nil {
+		return err
+	}
+
+	_, err = database.Exec("CREATE TABLE IF NOT EXISTS client(id TEXT, name TEXT)")
+	if err != nil {
+		return err
+	}
+
+	_, err = database.Exec("CREATE TABLE IF NOT EXISTS channel_client_rel(client TEXT, channel TEXT)")
+	if err != nil {
+		return err
+	}
+
+	_, err = database.Exec("CREATE TABLE IF NOT EXISTS events(client TEXT, type INTEGER, result INTEGER, timestamp INTEGER)")
+	if err != nil {
+		return err
+	}
+
+	_, err = database.Exec("CREATE TABLE IF NOT EXISTS channel_settings(channel TEXT, force_downgrade INTEGER DEFAULT 0)")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *sqliteDB) Close() error {
