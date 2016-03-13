@@ -198,7 +198,7 @@ func (u *sqliteDB) ListImages(channel string) ([]payload, error) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	q, err := u.db.Prepare("SELECT id,ver_build,ver_branch,ver_patch,ver_timestamp,sha1,sha256,size FROM payloads AS P JOIN channel_payload_rel AS R ON P.id=R.payload WHERE R.channel=? ORDER BY ver_build, ver_branch, ver_patch, ver_timestamp;")
+	q, err := u.db.Prepare("SELECT DISTINCT id,ver_build,ver_branch,ver_patch,ver_timestamp,sha1,sha256,size FROM payloads AS P JOIN channel_payload_rel AS R ON P.id=R.payload WHERE R.channel=? ORDER BY ver_build, ver_branch, ver_patch, ver_timestamp;")
 	if err != nil {
 		return nil, err
 	}
