@@ -116,6 +116,26 @@ func addPayloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Para
 	}
 }
 
+func attachPayloadToChannelHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	channel := r.URL.Query().Get("channel")
+	if channel == "" {
+		http.Error(w, "Missing parameter 'channel'", 400)
+		return
+	}
+
+	payload := r.URL.Query().Get("payload")
+	if channel == "" {
+		http.Error(w, "Missing parameter 'payload'", 400)
+		return
+	}
+
+	err := db.AttachPayloadToChannel(payload, channel)
+	if err != nil {
+		log.Errorf("addPayloadHandler: adding payload to channel: %v", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func deletePayloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 

@@ -69,12 +69,13 @@ func (u *sqliteDB) AttachPayloadToChannel(id, channel string) error {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	q, err := u.db.Prepare("INSERT INTO channel_payload_rel (payload,channel) VALUES (?, ?);")
+	q, err := u.db.Prepare(`INSERT INTO channel_payload_rel (payload,channel) SELECT ?, ?
+	                        WHERE NOT EXISTS(SELECT 1 FROM channel_payload_rel WHERE payload=? AND channel=?);`)
 	if err != nil {
 		return err
 	}
 
-	_, err = q.Exec(id, channel)
+	_, err = q.Exec(id, channel, id, channel)
 	if err != nil {
 		return err
 	}
