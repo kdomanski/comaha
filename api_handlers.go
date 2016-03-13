@@ -111,7 +111,7 @@ func handleApiUpdateCheck(logContext *logrus.Entry, localUrl string, appVersion 
 		logContext.Infof("Found update to version '%v' (id %v)", payload.Version, payload.ID)
 
 		ucResp.Status = "ok"
-		ucResp.AddUrl(localUrl + "/file?id=")
+		ucResp.AddUrl(fileBE.GetUpdateURL(localUrl))
 
 		manifest := ucResp.AddManifest("1.0.2")
 		manifest.AddPackage(payload.SHA1, payload.ID, strconv.FormatInt(payload.Size, 10), true)

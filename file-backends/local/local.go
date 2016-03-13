@@ -50,3 +50,7 @@ func (b *localFileBackend) Delete(id string) error {
 	err := os.Remove(filepath)
 	return err
 }
+
+func (b *localFileBackend) GetUpdateURL(localURL string) string {
+	return localURL + "/file?id="
+}

@@ -12,4 +12,5 @@ type fileBackend interface {
 	//StorageURL() string
 	Store(data []byte) (string, error)
 	Delete(id string) error
+	GetUpdateURL(localURL string) string
 }
