@@ -34,6 +34,28 @@ func TestDBAdding(t *testing.T) {
 
 }
 
+func TestDBPayloadExists(t *testing.T) {
+	testData := addTestElement{"fq435r34qd34r", "235r3a2q23r3fa32", "af3fa32fa3", 135235413242, payloadVersion{}}
+
+	db, err := newSqliteDB(":memory:")
+	if err != nil {
+		t.Errorf("newSqliteDB: %v", err.Error())
+	}
+
+	err = db.AddPayload(testData.ID, testData.SHA1, testData.SHA256, testData.Size, testData.Version)
+	if err != nil {
+		t.Errorf("AddPayload: %v", err.Error())
+	}
+
+	if !db.PayloadExists(testData.ID) {
+		t.Errorf("Payload '%v' should exist but doesn't.", testData.ID)
+	}
+
+	if db.PayloadExists("foobar") {
+		t.Errorf("Payload 'foobar' shouldn't exist but does.")
+	}
+}
+
 func TestDBListChannels1(t *testing.T) {
 	db, err := newSqliteDB(":memory:")
 	if err != nil {

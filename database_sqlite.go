@@ -126,6 +126,14 @@ func (u *sqliteDB) DeletePayload(id string) error {
 	return tx.Commit()
 }
 
+func (u *sqliteDB) PayloadExists(id string) bool {
+	row := u.db.QueryRow(`SELECT EXISTS(SELECT 1 FROM payloads WHERE id=?);`, id)
+	var result int64
+	row.Scan(&result)
+
+	return result > 0
+}
+
 func (u *sqliteDB) GetNewerPayload(currentVersion payloadVersion, channel string) (*payload, error) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()

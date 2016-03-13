@@ -5,6 +5,7 @@ type userDB interface {
 	DeletePayload(id string) error
 	AttachPayloadToChannel(id, channel string) error
 	GetNewerPayload(currentVersion payloadVersion, channel string) (*payload, error)
+	PayloadExists(id string) bool
 
 	ListImages(channel string) ([]payload, error)
 	ListChannels() ([]string, error)
