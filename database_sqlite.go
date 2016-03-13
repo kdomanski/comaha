@@ -118,11 +118,6 @@ func (u *sqliteDB) DeletePayload(id string) error {
 		return err
 	}
 
-	_, err = tx.Exec("DELETE from channel_settings WHERE channel=?;", id)
-	if err != nil {
-		return err
-	}
-
 	return tx.Commit()
 }
 
