@@ -57,6 +57,7 @@
                 <th>SHA256</th>
                 <th>Size</th>
                 <th></th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -67,6 +68,7 @@
                 <td>{{.SHA1}}</td>
                 <td>{{.SHA256}}</td>
                 <td>{{toMB .Size}} MB</td>
+                <td><button data-imgid="{{.ID}}" type="button" class="btn btn-xs btn-default attachimg" data-toggle="modal" data-target="#attachPayloadDialog"><span class="glyphicon glyphicon-random" /></button></td>
                 <td><button data-imgid="{{.ID}}" type="button" class="btn btn-xs btn-danger deleteimg">Delete</button></td>
               </tr>
               {{end}}
@@ -122,6 +124,25 @@
       </div>
     </div>
 
+    <div class="modal fade" tabindex="-1" role="dialog" id="attachPayloadDialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Add the payload to another channel</h4></div>
+          <div class="modal-body">
+            <select class="form-control" id="attachPicker">
+            {{range .Channels}}
+            <option>{{.}}</option>
+            {{end}}
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="attachDialogConfirm">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script>
@@ -135,7 +156,23 @@
             $("tr.imgentry#" + id).remove();
           });
         return false;
-        alert(id);
+      });
+
+      $('#attachPayloadDialog').on('show.bs.modal', function (event) {
+        var imgid = $(event.relatedTarget).data('imgid');
+        $(this).find('#attachDialogConfirm').data('imgid', imgid);
+      });
+
+      $('#attachDialogConfirm').on('click', function() {
+        var imgid = $(this).data('imgid');
+        var chan = $('#attachPayloadDialog').find("#attachPicker option:selected").text();
+        var url = `/admin/attach_payload_to_channel?channel=${chan}&payload=${encodeURI(imgid)}`;
+        $.ajax({
+          method: "POST",
+          url: url
+        }).complete(function() {
+          $('#attachPayloadDialog').modal('hide');
+        });
       });
 
       $('#downgradeSwitchDialog').on('show.bs.modal', function (event) {
