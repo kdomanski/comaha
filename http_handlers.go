@@ -145,16 +145,24 @@ func deletePayloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		return
 	}
 
-	err := db.DeletePayload(id)
+	channel := r.URL.Query().Get("channel")
+	if id == "" {
+		http.Error(w, "Missing parameter 'channel'", 400)
+		return
+	}
+
+	err := db.DeletePayload(id, channel)
 	if err != nil {
-		log.Errorf("deletePayloadHandler: removing DB entry for '%v': %v", id, err.Error())
+		log.Errorf("deletePayloadHandler: removing DB entry for '%v' from channel '%v': %v", id, channel, err.Error())
 		http.Error(w, err.Error(), 500)
 	}
 
-	err = fileBE.Delete(id)
-	if err != nil {
-		log.Errorf("deletePayloadHandler: removing file for '%v': %v", id, err.Error())
-		http.Error(w, err.Error(), 500)
+	if !db.PayloadExists(id) {
+		err = fileBE.Delete(id)
+		if err != nil {
+			log.Errorf("deletePayloadHandler: removing file for '%v': %v", id, err.Error())
+			http.Error(w, err.Error(), 500)
+		}
 	}
 }
 

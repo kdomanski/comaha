@@ -364,7 +364,7 @@ func TestDBDeleting1(t *testing.T) {
 	db.AddPayload("d41234d321", "12d34", "1234", 533453, payloadVersion{build: 412, branch: 4, patch: 2143, timestamp: time.Unix(2142, 0).UTC()})
 	db.AttachPayloadToChannel("d41234d321", "channel2")
 
-	err = db.DeletePayload("d41234d321")
+	err = db.DeletePayload("d41234d321", "channel2")
 	if err != nil {
 		t.Errorf("DeletePayload: %v", err.Error())
 	}
@@ -397,8 +397,8 @@ func TestDBDeleting2(t *testing.T) {
 	db.AddPayload("d41234d321", "12d34", "1234", 533453, payloadVersion{build: 412, branch: 4, patch: 2143, timestamp: time.Unix(2142, 0).UTC()})
 	db.AttachPayloadToChannel("d41234d321", "channel2")
 
-	db.DeletePayload("d41234d321")
-	db.DeletePayload("xyz")
+	db.DeletePayload("d41234d321", "channel2")
+	db.DeletePayload("xyz", "channel2")
 
 	chans, err := db.ListChannels()
 	if err != nil {
@@ -411,6 +411,39 @@ func TestDBDeleting2(t *testing.T) {
 	expectedChans := []string{"channel1"}
 	if !reflect.DeepEqual(chans, expectedChans) {
 		t.Errorf("Expected channels %+v, got %+v", expectedChans, chans)
+	}
+}
+
+func TestDBDeleting3(t *testing.T) {
+	db, err := newSqliteDB(":memory:")
+	if err != nil {
+		t.Errorf("newSqliteDB: %v", err.Error())
+	}
+
+	db.AddPayload("foo", "bar", "foobar", 1234, payloadVersion{build: 766, branch: 4, patch: 1, timestamp: time.Unix(0, 0).UTC()})
+	db.AttachPayloadToChannel("foo", "channel1")
+	db.AttachPayloadToChannel("foo", "channel2")
+
+	if !db.PayloadExists("foo") {
+		t.Errorf("Payload 'foo' should exist but doesn't.")
+	}
+
+	err = db.DeletePayload("foo", "channel1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !db.PayloadExists("foo") {
+		t.Errorf("Payload 'foo' should exist but doesn't.")
+	}
+
+	err = db.DeletePayload("foo", "channel2")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if db.PayloadExists("foobar") {
+		t.Errorf("Payload 'foobar' shouldn't exist but does.")
 	}
 }
 

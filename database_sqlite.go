@@ -100,7 +100,7 @@ func (u *sqliteDB) AddPayload(id, sha1, sha256 string, size int64, version paylo
 	return nil
 }
 
-func (u *sqliteDB) DeletePayload(id string) error {
+func (u *sqliteDB) DeletePayload(id, channel string) error {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 	tx, err := u.db.Begin()
@@ -108,12 +108,14 @@ func (u *sqliteDB) DeletePayload(id string) error {
 		return err
 	}
 
-	_, err = tx.Exec("DELETE from payloads WHERE id=?;", id)
+	_, err = tx.Exec("DELETE from channel_payload_rel WHERE payload=? AND channel=?;", id, channel)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec("DELETE from channel_payload_rel WHERE payload=?;", id)
+	_, err = tx.Exec(`DELETE from payloads WHERE id=?
+    AND NOT EXISTS(SELECT 1 FROM channel_payload_rel WHERE payload=?);`,
+		id, id)
 	if err != nil {
 		return err
 	}
